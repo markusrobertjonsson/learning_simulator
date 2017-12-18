@@ -218,6 +218,8 @@ class Parameters():
         self.parameters.update(newdict)
 
     def make_mechanism_obj(self):
+        if MECHANISM not in self.parameters:
+            raise LsParseException("The parameter {0} is required.".format(MECHANISM))
         mechanism_name = self.parameters[MECHANISM].lower()
         if mechanism_name == RESCORLA_WAGNER:
             mechanism_obj = LsMechanism.RescorlaWagner(**self.parameters)

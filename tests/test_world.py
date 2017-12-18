@@ -1,7 +1,8 @@
 import unittest
+
+import LsScript
 from LsWorld import PhaseWorld
 from LsExceptions import LsParseException
-# import LS.LsWorld
 
 
 def make_phase(phase, pv, stimulus_elements, behaviors):
@@ -19,6 +20,32 @@ class TestPhaseWorld(unittest.TestCase):
         self.variable_interval = self.setup_variable_interval()
         self.variable_ratio = self.setup_variable_ratio()
         self.fixed_time = self.setup_fixed_time()
+
+    # XXX enable when wrong endcond raises FlParseException
+    def foo_test_wrong_endcond(self):
+        script = """
+        @parameters
+        {
+            'mechanism': 'Enquist',
+            'behaviors': ['R0', 'R1', 'R2'],
+            'stimulus_elements': ['E0', 'E1', 'E2'],
+            'response_requirements': {
+                                      'R0': ['E0', 'E1'],
+                                      'R1': 'E1',
+                                      'R2': ['E0', 'E1', 'E2']
+                                      }
+        }
+
+        @phase {'label':'foo', 'end':'E00=100'}
+        PL0    'E0'  |  PL1
+        PL1    'E1'  |  PL2
+        PL2    'E2'  |  PL0
+
+        @run
+        """
+        with self.assertRaises(LsParseException):
+            script_obj = LsScript.LsScript(script)
+            simulation_data = script_obj.run()
 
     def setup_classical_conditioning(self):
         phase = """CONTEXT context              | 25:US       | CONTEXT

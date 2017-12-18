@@ -1,4 +1,5 @@
 from LsExceptions import LsParseException
+import LsUtil
 
 from math import exp
 from random import seed, random
@@ -6,6 +7,7 @@ seed()
 
 STIMULUS_ELEMENTS = 'stimulus_elements'
 BEHAVIORS = 'behaviors'
+RR = 'response_requirements'
 U = 'u'
 C = 'behavior_cost'
 START_V = 'start_v'
@@ -22,6 +24,7 @@ DEFAULTS = {START_V: {DEFAULT: 0},
             ALPHA_V: 1,
             ALPHA_W: 1,
             BETA: 1,
+            RR: dict(),
             OMIT_LEARNING: list()}
 
 # -------------------------------------------------------------------------
@@ -46,6 +49,7 @@ class Mechanism():
         self.alpha_w = kwargs.get(ALPHA_W, DEFAULTS[ALPHA_W])
         self.beta = kwargs.get(BETA, DEFAULTS[BETA])
         self.omit_learning = kwargs.get(OMIT_LEARNING, DEFAULTS[OMIT_LEARNING])
+        self.response_req = kwargs.get(RR, DEFAULTS[RR])
 
         # Needs to be copies since they are input and they are altered
         self.u = dict(kwargs.get(U, DEFAULTS[U]))
@@ -76,6 +80,23 @@ class Mechanism():
         if (DEFAULT not in self.c) and (set(self.behaviors) != self.c.keys()):
             raise LsParseException("The parameter {0} must have the key '{1}' or be exhaustive.".format(C, DEFAULT))
 
+        if type(self.response_req) is not dict:
+            raise LsParseException("{0} must be a dict.".format(RR))
+        for key, val in self.response_req.items():
+            if key not in self.behaviors:
+                raise LsParseException("Unknown behavior '{0}' in {1}.".format(key, RR))
+            if type(val) is str:
+                if val not in self.stimulus_elements:
+                    raise LsParseException("Unknown stimulus element {0} in {1}.".format(val, RR))
+            elif type(val) is list:
+                for e in val:
+                    if e not in self.stimulus_elements:
+                        raise LsParseException("Unknown stimulus element {0} in {1}.".format(val, RR))
+            else:
+                raise LsParseException("Value for {0} in {1} must be a string or a list of strings.".format(key, RR))
+
+        self.stimulus_req = LsUtil.dict_inv(self.response_req)
+
         self._initialize_uc()
         self.subject_reset()
 
@@ -96,15 +117,16 @@ class Mechanism():
         return self.response
 
     def _get_response(self, stimulus):
-        x = self._support_vector(stimulus)
+        x, feasible_behaviors = self._support_vector(stimulus)
         q = random() * sum(x)
         index = 0
         while q > sum(x[0:index + 1]):
             index += 1
-        return self.behaviors[index]
+        return feasible_behaviors[index]
 
     def _support_vector(self, stimulus):
-        return support_vector_static(stimulus, self.behaviors, self.beta, self.v)
+        return support_vector_static(stimulus, self.behaviors, self.stimulus_req,
+                                     self.beta, self.v)
 
         # vector = []
         # for behavior in self.behaviors:
@@ -143,20 +165,44 @@ class Mechanism():
             self.w[element] = 0
 
 
-def support_vector_static(stimulus, behaviors, beta, v):
+# feasible_behaviors_cache = dict()
+
+def get_feasible_behaviors(stimulus, behaviors, stimulus_req):
+    if not stimulus_req:  # If stimulus_req is empty
+        return behaviors
+
+    # if stimulus in feasible_behaviors_cache:
+    #     return feasible_behaviors_cache[stimulus]
+
+    feasible_behaviors = set()
+    for element in stimulus:
+        if element in stimulus_req:
+            for b in stimulus_req[element]:
+                feasible_behaviors.add(b)
+        else:
+            feasible_behaviors = behaviors
+            break
+    feasible_behaviors = list(feasible_behaviors)
+    # feasible_behaviors_cache[stimulus] = feasible_behaviors
+    return feasible_behaviors
+
+
+def support_vector_static(stimulus, behaviors, stimulus_req, beta, v):
+    feasible_behaviors = get_feasible_behaviors(stimulus, behaviors, stimulus_req)
+
     vector = list()
-    for behavior in behaviors:
+    for behavior in feasible_behaviors:
         value = 0
         for element in stimulus:
             value += exp(beta * v[(element, behavior)])
         vector.append(value)
-    return vector
+    return vector, feasible_behaviors
 
 
 # For postprocessing only
-def probability_of_response(stimulus, behavior, behaviors, beta, v):
-    x = support_vector_static(stimulus, behaviors, beta, v)
-    index = behaviors.index(behavior)
+def probability_of_response(stimulus, behavior, behaviors, stimulus_req, beta, v):
+    x, feasible_behaviors = support_vector_static(stimulus, behaviors, stimulus_req, beta, v)
+    index = feasible_behaviors.index(behavior)
     p = x[index] / sum(x)
     return p
 
@@ -220,7 +266,7 @@ class SARSA(Mechanism):
                 (usum + vsum2 - vsum1 - self.c[self.response])
 
 
-class ActorCritic(Mechanism):
+'''class ActorCritic(Mechanism):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
@@ -242,7 +288,30 @@ class ActorCritic(Mechanism):
             self.v[(element, self.response)] += deltav
         # w
         for element in self.prev_stimulus:
-            self.w[element] += deltaw
+            self.w[element] += deltaw'''
+
+
+class ActorCritic(Mechanism):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def learn(self, stimulus):
+        vsum_prev, wsum_prev, usum, wsum = 0, 0, 0, 0
+        for element in self.prev_stimulus:
+            vsum_prev += self.v[(element, self.response)]
+            wsum_prev += self.w[element]
+        for element in stimulus:
+            usum += self.u[element]
+            wsum += self.w[element]
+        # v
+        # Markus, I copied Enquist and just changed this row by replacing vsum_prev with wsum_prev
+        delta = self.alpha_v * (usum + wsum - self.c[self.response] - wsum_prev)
+        for element in self.prev_stimulus:
+            self.v[(element, self.response)] += delta
+        # w
+        delta = self.alpha_w * (usum + wsum - self.c[self.response] - wsum_prev)
+        for element in self.prev_stimulus:
+            self.w[element] += delta
 
 
 class Enquist(Mechanism):

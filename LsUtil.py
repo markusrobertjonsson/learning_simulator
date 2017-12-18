@@ -52,7 +52,7 @@ def strsplit(string, substrings):
     parts = [string[i:j] for i, j in zip(indices, indices[1:] + [None])]
 
     # matches = list()
-    # for i in range(len(parts)):
+    # for i in range(len(parts)):d
     #     part = parts[i]
     #     for substring in substrings:
     #         if part.startswith(substring):
@@ -319,7 +319,7 @@ def diff(x, diffind):
     '''Returns [ x[ind1[0]]-x[0], x[ind1[1]]-x[ind1[0]], x[ind1[2]]-x[ind1[1]], ...,
                  x[-1]-x[ind1[-1]] ]
        where ind1 are the indices to the ones in diffind.'''
-    assert (len(x) == len(diffind)), "x and diffind must have eqaual length."
+    assert (len(x) == len(diffind)), "x and diffind must have equal length."
     out = list()
     if len(x) > 0:
         curr = 0
@@ -338,3 +338,34 @@ def arrayind(x, ind):
         if indval == 1:
             out.append(x[i])
     return out
+
+
+def dict_inv(d_in):
+    d = dict(d_in)
+    key_errmsg = "All keys must be non-empty strings."
+    val_errmsg = "All values must be non-empty strings or lists of non-empty strings."
+    for key, val in d.items():
+        if type(key) is not str:
+            raise Exception(key_errmsg)
+        elif len(key) == 0:
+            raise Exception(key_errmsg)
+        if type(val) is not list:
+            val = [val]
+            d[key] = val
+        for v in val:
+            if type(v) is not str:
+                raise Exception(val_errmsg)
+            elif len(v) == 0:
+                raise Exception(val_errmsg)
+
+    all_val = set()
+    for key, val in d.items():
+        for v in val:
+            all_val.add(v)
+    d_out = dict()
+    for v in all_val:
+        d_out[v] = list()
+        for key, val in d.items():
+            if v in val:
+                d_out[v].append(key)
+    return d_out
