@@ -28,45 +28,48 @@ class LsScript():
         self._parse()
 
     def _parse(self):
-        blocks = LsUtil.strsplit(self.script, ALL_KEYWORDS)
+        blocks = LsUtil.strsplit(self.script, KWP)  # ALL_KEYWORDS
         for block in blocks:
-            postcmd, cmdarg = LsUtil.split1_strip(block)
-            if postcmd in ALL_POSTCMDS:
+            first_row, _ = LsUtil.split1_strip(block, '\n')
+            kw, _ = LsUtil.split1_strip(first_row)
+            if kw not in ALL_KEYWORDS:
+                raise LsParseException("Unknown keyword '{}'".format(kw))
+            if kw in ALL_POSTCMDS:
+                postcmd, cmdarg = LsUtil.split1_strip(block)
                 postcmd_obj = parse_postcmd(postcmd, cmdarg, self.parameters)
                 self.postcmds.add(postcmd_obj)
-                continue
-            scriptblock = parse_block(block)
-            kw = scriptblock.keyword
-            if kw == COMMENT:
-                self.comment.add(scriptblock)
-            elif kw == PARAMETERS:
-                self.parameters.add(scriptblock)
-            elif kw == PHASE:
-                if LABEL not in scriptblock.pvdict:
-                    scriptblock.pvdict[LABEL] = self._next_unnamed_phase()
-                if END not in scriptblock.pvdict:
-                    raise LsParseException("The property 'end' is required in {}.".format(PHASE))
-                self.phases.add(scriptblock, self.parameters)  # .clone()
-            elif kw == RUN:
-                # If 'phases' not specified, use empty tuple (which means all phases)
-                phases_to_use = scriptblock.pvdict.get(PHASES, tuple())
-                if type(phases_to_use) != tuple:  # Allow string for single phase
-                    phases_to_use = (phases_to_use,)
-                world = self.phases.make_world(phases_to_use)
-                mechanism_obj = self.parameters.make_mechanism_obj()
-                run_label = scriptblock.pvdict.get(LABEL, self._next_unnamed_run())
-                n_subjects = self.parameters.parameters.get(SUBJECTS, 1)
-                self.runs.add(run_label, world, mechanism_obj, n_subjects)
             else:
-                raise LsParseException("Unknown keyword '{}'".format(kw))
+                scriptblock = parse_block(block)
+                if kw == COMMENT:
+                    self.comment.add(scriptblock)
+                elif kw == PARAMETERS:
+                    self.parameters.add(scriptblock)
+                elif kw == PHASE:
+                    if LABEL not in scriptblock.pvdict:
+                        scriptblock.pvdict[LABEL] = self._next_unnamed_phase()
+                    if END not in scriptblock.pvdict:
+                        raise LsParseException("The property 'end' is required in {}.".format(PHASE))
+                    self.phases.add(scriptblock, self.parameters)  # .clone()
+                elif kw == RUN:
+                    # If 'phases' not specified, use empty tuple (which means all phases)
+                    phases_to_use = scriptblock.pvdict.get(PHASES, tuple())
+                    if type(phases_to_use) != tuple:  # Allow string for single phase
+                        phases_to_use = (phases_to_use,)
+                    world = self.phases.make_world(phases_to_use)
+                    mechanism_obj = self.parameters.make_mechanism_obj()
+                    run_label = scriptblock.pvdict.get(LABEL, self._next_unnamed_run())
+                    n_subjects = self.parameters.parameters.get(SUBJECTS, 1)
+                    self.runs.add(run_label, world, mechanism_obj, n_subjects)
+                else:
+                    raise LsParseException("Unknown keyword '{}'".format(kw))
 
     def run(self):
         return self.runs.run()
 
-    def postproc(self, simulation_data):
+    def postproc(self, simulation_data, block=True):
         # self.postcmds.set_output(self.script_output)
         self.postcmds.run(simulation_data)
-        plt.show()
+        plt.show(block)
 
     def _next_unnamed_run(self):
         run_label = "run{}".format(self.unnamed_run_cnt)

@@ -26,7 +26,7 @@ STIMULUS_ELEMENTS = "stimulus_elements"
 BETA = "beta"
 
 # Mechanism names
-ENQUIST = 'enquist'
+ENQUIST = 'ga'
 RESCORLA_WAGNER = 'rescorla_wagner'
 Q_LEARNING = 'q_learning'
 SARSA = 'sarsa'

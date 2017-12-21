@@ -13,7 +13,7 @@ class ScriptRun():
         self.n_subjects = n_subjects
 
     def run(self):
-        out = LsOutput.RunOutput(self.n_subjects)
+        out = LsOutput.RunOutput(self.n_subjects, self.mechanism_obj.stimulus_req)
 
         # Initialize output with start values
         # first_phase_label = self.world.phases[0].label

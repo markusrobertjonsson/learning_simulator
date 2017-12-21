@@ -100,12 +100,12 @@ class ScriptOutput():
 
 
 class RunOutput():
-    def __init__(self, n_subjects):
+    def __init__(self, n_subjects, stimulus_req):
         # A list of RunOutputSubject objects
         self.output_subjects = list()
         self.n_subjects = n_subjects
         for _ in range(n_subjects):
-            self.output_subjects.append(RunOutputSubject())
+            self.output_subjects.append(RunOutputSubject(stimulus_req))
 
     def write_v(self, subject_ind, stimulus, response, step, mechanism):
         '''stimulus is a tuple.'''
@@ -146,7 +146,9 @@ class RunOutput():
 
 
 class RunOutputSubject():
-    def __init__(self):
+    def __init__(self, stimulus_req):
+        self.stimulus_req = stimulus_req
+
         # Keys are 2-tuples (stimulus_element,response), values are Val objects
         self.v = dict()
 
@@ -266,7 +268,8 @@ class RunOutputSubject():
         for i in range(nval):
             v_local = LsUtil.dict_of_list_ind(v_val, i)
             out[i] = LsMechanism.probability_of_response(sr[0], sr[1], behaviors,
-                                                         evalprops[BETA], v_local)
+                                                         self.stimulus_req, evalprops[BETA],
+                                                         v_local)
         return out
 
     @staticmethod
