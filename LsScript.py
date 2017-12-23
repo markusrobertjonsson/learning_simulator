@@ -7,6 +7,7 @@ from LsExceptions import LsParseException
 from LsConstants import *
 
 import ast
+import csv
 import matplotlib.pyplot as plt
 
 
@@ -84,7 +85,7 @@ class LsScript():
 
 class PostCmds():
     def __init__(self):
-        self.cmds = list()  # List of PostCmd objects
+        self.cmds = list()  # List of PlotCmd or ExportCmd objects
 
     def add(self, cmd):
         self.cmds.append(cmd)
@@ -92,14 +93,6 @@ class PostCmds():
     def run(self, simulation_data):
         for cmd in self.cmds:
             cmd.run(simulation_data)
-
-
-# class PostCmd():
-#     def __init__(self):
-#         self.simulation_data = None
-
-#     def set_simdata(self, script_output):
-#         self.script_output = script_output
 
 
 class PlotCmd():
@@ -112,6 +105,10 @@ class PlotCmd():
             self.plot_prop['linewidth'] = 1
 
     def run(self, simulation_data):
+        if self.cmd in ALL_EXPORTCMDS:
+            self._export(simulation_data)
+            return
+
         label_expr = beautify_expr_for_label(self.expr)
         if self.cmd == VPLOT:
             ydata = simulation_data.vwpn_eval('v', self.expr, self.eval_prop)
@@ -125,13 +122,82 @@ class PlotCmd():
         elif self.cmd == NPLOT:
             ydata = simulation_data.vwpn_eval('n', self.expr, self.eval_prop)
             legend_label = "n{}".format(label_expr)
+
         if self.eval_prop[EVAL_SUBJECT] == EVAL_ALL:
+            subject_legend_labels = list()
             for i, subject_ydata in enumerate(ydata):
                 subject_legend_label = "{0}, subject {1}".format(legend_label, i)
+                subject_legend_labels.append(subject_legend_label)
+            for i, subject_ydata in enumerate(ydata):
+                subject_legend_label = subject_legend_labels[i]
                 plt.plot(subject_ydata, label=subject_legend_label, **self.plot_prop)
         else:
             plt.plot(ydata, label=legend_label, **self.plot_prop)
         plt.grid(True)
+
+
+class ExportCmd():
+    def __init__(self, cmd, expr, eval_prop):
+        self.cmd = cmd
+        self.expr = expr
+        self.eval_prop = eval_prop
+
+    def run(self, simulation_data):
+        label_expr = beautify_expr_for_label(self.expr)
+        if self.cmd == VEXPORT:
+            ydata = simulation_data.vwpn_eval('v', self.expr, self.eval_prop)
+            legend_label = "v{}".format(label_expr)
+        elif self.cmd == WEXPORT:
+            ydata = simulation_data.vwpn_eval('w', self.expr, self.eval_prop)
+            legend_label = "w{}".format(label_expr)
+        elif self.cmd == PEXPORT:
+            ydata = simulation_data.vwpn_eval('p', self.expr, self.eval_prop)
+            legend_label = "p{}".format(label_expr)
+        elif self.cmd == NEXPORT:
+            ydata = simulation_data.vwpn_eval('n', self.expr, self.eval_prop)
+            legend_label = "n{}".format(label_expr)
+
+        if EVAL_FILENAME not in self.eval_prop:
+            raise LsParseException("Property {0} to {1} is mandatory.".format(EVAL_FILENAME, self.cmd))
+        filename = self.eval_prop[EVAL_FILENAME]
+        file = open(filename, 'w', newline='')
+
+        n_ydata = len(ydata)
+
+        with file as csvfile:
+            w = csv.writer(csvfile, quotechar='"', quoting=csv.QUOTE_NONNUMERIC, escapechar=None)
+
+            if self.eval_prop[EVAL_SUBJECT] == EVAL_ALL:
+                subject_legend_labels = list()
+                for i, subject_ydata in enumerate(ydata):
+                    subject_legend_label = "{0}, subject {1}".format(legend_label, i)
+                    subject_legend_labels.append(subject_legend_label)
+                    
+                # Write headers
+                w.writerow(['x'] + subject_legend_labels)
+
+                # Write data
+                maxlen = 0
+                for i in range(n_ydata):
+                    len_ydata_i = len(ydata[i])
+                    if len_ydata_i > maxlen:
+                        maxlen = len_ydata_i
+                for row in range(maxlen):
+                    datarow = [row]
+                    for i in range(n_ydata):
+                        if row < len(ydata[i]):
+                            datarow.append(ydata[i][row])
+                        else:
+                            datarow.append(' ')
+                    w.writerow(datarow)
+            else:
+                # Write headers
+                w.writerow(['x', legend_label])
+
+                # Write data
+                for row in range(len(ydata)):
+                    datarow = [row, ydata[row]]
+                    w.writerow(datarow)
 
 
 def beautify_expr_for_label(expr0):
@@ -408,7 +474,7 @@ def parse_postcmd(cmd, cmdarg, simulation_parameters):
             raise LsParseException("Second argument to {} must be a dictionary.".format(cmd))
         return LegendCmd(labels, mpl_prop)
 
-    elif cmd == PPLOT:
+    elif cmd == PPLOT or cmd == PEXPORT:
         expr = args[0]
         if type(expr) is not tuple:
             raise LsParseException("First argument to {} must be a tuple.".format(cmd))
@@ -420,20 +486,28 @@ def parse_postcmd(cmd, cmdarg, simulation_parameters):
         eval_prop = {BETA: beta}
         if nargs >= 2:
             eval_prop.update(args[1])
-            # eval_prop = args[1]
-        plot_prop = dict()
-        if nargs >= 3:
-            plot_prop = args[2]
-        return PlotCmd(cmd, expr, eval_prop, plot_prop)
+        if cmd == PPLOT:
+            plot_prop = dict()
+            if nargs >= 3:
+                plot_prop = args[2]
+            return PlotCmd(cmd, expr, eval_prop, plot_prop)
+        else:
+            if nargs >= 3:
+                raise LsParseException("The number of arguments to {} must be 1 or 2.".format(cmd))
+            return ExportCmd(cmd, expr, eval_prop)
 
-    elif cmd == NPLOT:
-        if (nargs == 0) or (nargs > 4):
-            raise LsParseException("The number of arguments to {} must be 1, 2, 3 or 4.".
-                                   format(cmd))
+    elif cmd == NPLOT or cmd == NEXPORT:
+        if cmd == NPLOT:
+            if (nargs == 0) or (nargs > 4):
+                raise LsParseException("The number of arguments to {} must be 1, 2, 3 or 4.".
+                                       format(cmd))
+        elif cmd == NEXPORT:
+            if (nargs == 0) or (nargs > 3):
+                raise LsParseException("The number of arguments to {} must be 1, 2 or 3.".
+                                       format(cmd))
         seq = args[0]
         seqref = None
         eval_prop = dict()
-        plot_prop = dict()
         if nargs >= 2:
             if (type(args[1]) is str) or (type(args[1]) is tuple) or (type(args[1]) is list):
                 seqref = args[1]
@@ -441,17 +515,25 @@ def parse_postcmd(cmd, cmdarg, simulation_parameters):
                 eval_prop = args[1]
             else:
                 raise LsParseException("Invalid second argument to {}.".format(cmd))
-        if nargs >= 3:
-            if seqref is None:
-                plot_prop = args[2]
-            else:
-                eval_prop = args[2]
-        if nargs == 4:
-            plot_prop = args[3]
+        if cmd == NPLOT:
+            plot_prop = dict()
+            if nargs >= 3:
+                if seqref is None:
+                    plot_prop = args[2]
+                else:
+                    eval_prop = args[2]
+            if nargs == 4:
+                plot_prop = args[3]
+            return PlotCmd(cmd, (seq, seqref), eval_prop, plot_prop)
+        else:
+            if nargs >= 3:
+                if seqref is None:
+                    raise LsParseException("Invalid arguments to {}.".format(cmd))
+                else:
+                    eval_prop = args[2]
+            return ExportCmd(cmd, (seq, seqref), eval_prop)
 
-        return PlotCmd(cmd, (seq, seqref), eval_prop, plot_prop)
-
-    else:  # vplot or wplot
+    elif cmd == VPLOT or cmd == WPLOT:
         expr = args[0]
         eval_prop = dict()
         if nargs >= 2:
@@ -460,6 +542,16 @@ def parse_postcmd(cmd, cmdarg, simulation_parameters):
         if nargs >= 3:
             plot_prop = args[2]
         return PlotCmd(cmd, expr, eval_prop, plot_prop)
+
+    else:  # cmd == VEXPORT or cmd == WEXPORT:
+        expr = args[0]
+        eval_prop = dict()
+        if nargs >= 2:
+            eval_prop = args[1]
+        if nargs >= 3:
+            raise LsParseException("The number of arguments to {} must be 1 or 2.".
+                                   format(cmd))
+        return ExportCmd(cmd, expr, eval_prop)
 
 
 def parse_subplotspec(spec, errmsg):

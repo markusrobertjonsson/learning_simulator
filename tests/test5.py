@@ -6,7 +6,7 @@ script='''@parameters
 'mechanism'         : 'Enquist',
 'behaviors'         : ['R0','R1','R2'],
 'stimulus_elements' : ['S1','S2','reward','reward2','new trial'],
-'start_v'           : {'default':-1}, 
+'start_v'           : {'default':-1},
 'alpha_v'           : 0.1,
 'alpha_w'           : 0.1,
 'beta'              : 1,

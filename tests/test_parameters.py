@@ -20,13 +20,13 @@ class TestRequired(unittest.TestCase):
         paramblock = """
         @parameters
         {
-            'mechanism': 'Enquist',
+            'mechanism': 'GA',
             'behaviors': ['R0'],
             'stimulus_elements': ['E0']
         }
         """
         p = make_script_parameters(paramblock)
-        self.assertEqual(p['mechanism'], 'Enquist')
+        self.assertEqual(p['mechanism'], 'GA')
         self.assertEqual(p['behaviors'], ['R0'])
         self.assertEqual(p['stimulus_elements'], ['E0'])
 
@@ -70,7 +70,7 @@ class TestResponseRequirements(unittest.TestCase):
         paramblock = """
         @parameters
         {
-            'mechanism': 'Enquist',
+            'mechanism': 'GA',
             'behaviors': ['R0', 'R1', 'R2'],
             'stimulus_elements': ['E00', 'E01', 'E10', 'E20', 'E21', 'E22'],
             'response_requirements': {}
@@ -82,7 +82,7 @@ class TestResponseRequirements(unittest.TestCase):
         paramblock = """
         @parameters
         {
-            'mechanism': 'Enquist',
+            'mechanism': 'GA',
             'behaviors': ['R0', 'R1', 'R2'],
             'stimulus_elements': ['E00', 'E01', 'E10', 'E20', 'E21', 'E22'],
             'response_requirements': {
@@ -101,7 +101,7 @@ class TestResponseRequirements(unittest.TestCase):
         paramblock = """
         @parameters
         {
-            'mechanism': 'Enquist',
+            'mechanism': 'GA',
             'behaviors': ['R0', 'R1', 'R2'],
             'stimulus_elements': ['E00', 'E01', 'E10', 'E20', 'E21', 'E22'],
             'response_requirements': 'foo'
@@ -114,7 +114,7 @@ class TestResponseRequirements(unittest.TestCase):
         paramblock = """
         @parameters
         {
-            'mechanism': 'Enquist',
+            'mechanism': 'GA',
             'behaviors': ['R0', 'R1', 'R2'],
             'stimulus_elements': ['E00', 'E01', 'E10', 'E20', 'E21', 'E22'],
             'response_requirements': ['f','o','o']
@@ -128,7 +128,7 @@ class TestResponseRequirements(unittest.TestCase):
         paramblock = """
         @parameters
         {
-            'mechanism': 'Enquist',
+            'mechanism': 'GA',
             'behaviors': ['R0', 'R1', 'R2'],
             'stimulus_elements': ['E00', 'E01', 'E10', 'E20', 'E21', 'E22'],
             'response_requirements': {
@@ -145,7 +145,7 @@ class TestResponseRequirements(unittest.TestCase):
         paramblock = """
         @parameters
         {
-            'mechanism': 'Enquist',
+            'mechanism': 'GA',
             'behaviors': ['R0', 'R1', 'R2'],
             'stimulus_elements': ['E00', 'E01', 'E10', 'E20', 'E21', 'E22'],
             'response_requirements': {
@@ -163,7 +163,7 @@ class TestResponseRequirements(unittest.TestCase):
         paramblock = """
         @parameters
         {
-            'mechanism': 'Enquist',
+            'mechanism': 'GA',
             'behaviors': ['R0', 'R1', 'R2'],
             'stimulus_elements': ['E00', 'E01', 'E10', 'E20', 'E21', 'E22'],
             'response_requirements': {
@@ -180,7 +180,7 @@ class TestResponseRequirements(unittest.TestCase):
         paramblock = """
         @parameters
         {
-            'mechanism': 'Enquist',
+            'mechanism': 'GA',
             'behaviors': ['R0', 'R1', 'R2'],
             'stimulus_elements': ['E00', 'E01', 'E10', 'E20', 'E21', 'E22'],
             'response_requirements': {
@@ -198,7 +198,7 @@ class TestResponseRequirements(unittest.TestCase):
         script = """
         @parameters
         {
-            'mechanism': 'Enquist',
+            'mechanism': 'GA',
             'behaviors': ['R0', 'R1', 'R2'],
             'stimulus_elements': ['E00', 'E01', 'E10', 'E20', 'E21', 'E22'],
             'response_requirements': {
@@ -249,7 +249,7 @@ class TestResponseRequirements(unittest.TestCase):
         script = """
         @parameters
         {
-            'mechanism': 'Enquist',
+            'mechanism': 'GA',
             'behaviors': ['R0', 'R1', 'R2'],
             'stimulus_elements': ['E0', 'E1', 'E2'],
             'response_requirements': {
@@ -280,7 +280,7 @@ class TestResponseRequirements(unittest.TestCase):
         script = """
         @parameters
         {
-            'mechanism': 'Enquist',
+            'mechanism': 'GA',
             'behaviors': ['R0', 'R1', 'R2'],
             'stimulus_elements': ['E0', 'E1', 'E2'],
             'response_requirements': {

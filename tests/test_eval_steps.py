@@ -9,7 +9,7 @@ class TestEvalSteps(unittest.TestCase):
         script = '''@parameters
         {
         'subjects'          : 1,
-        'mechanism'         : 'Enquist',
+        'mechanism'         : 'GA',
         'behaviors'         : ['R0','R1','R2'],
         'stimulus_elements' : ['S1','S2','reward','reward2','new trial'],
         'start_v'           : {'default':-1},
@@ -20,26 +20,21 @@ class TestEvalSteps(unittest.TestCase):
         'u'                 : {'reward':10, 'default': 0},
         'omit_learning'     : ['new trial']
         }
-
         ## ------------- SEQUENCE LEARNING -------------
         @phase {'label':'chaining', 'end': 'reward=25'}
         NEW_TRIAL  'new trial'      | STIMULUS_1
         STIMULUS_1  'S1'            | R1: STIMULUS_2     | NEW_TRIAL
         STIMULUS_2  'S2'            | R2: REWARD         | NEW_TRIAL
         REWARD     reward      | NEW_TRIAL
-
         @phase {'label':'test_A', 'end': 'S1=100'}
         NEW_TRIAL   'new trial'    | STIMULUS_1
         STIMULUS_1  'S1'           | REWARD
         REWARD      'reward2'      | NEW_TRIAL
-
         @phase {'label':'test_B', 'end': 'S1=100'}
         NEW_TRIAL  'new trial'    | STIMULUS_1
         STIMULUS_1  'S1'            | R1: STIMULUS_2     | NEW_TRIAL
         STIMULUS_2  'S2'            | NEW_TRIAL
-
         @run {'phases':('chaining','test_B')}
-
         '''
         script_obj = LsScript.LsScript(script)
         simulation_data = script_obj.run()

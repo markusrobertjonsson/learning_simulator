@@ -14,8 +14,14 @@ WPLOT = KWP + "wplot"
 VPLOT = KWP + "vplot"
 PPLOT = KWP + "pplot"
 NPLOT = KWP + "nplot"
+WEXPORT = KWP + "wexport"
+VEXPORT = KWP + "vexport"
+PEXPORT = KWP + "pexport"
+NEXPORT = KWP + "nexport"
 
-ALL_POSTCMDS = [WPLOT, VPLOT, PPLOT, NPLOT, SUBPLOT, FIGURE, LEGEND]
+ALL_PLOTCMDS = [WPLOT, VPLOT, PPLOT, NPLOT, SUBPLOT, FIGURE, LEGEND]
+ALL_EXPORTCMDS = [WEXPORT, VEXPORT, PEXPORT, NEXPORT]
+ALL_POSTCMDS = ALL_PLOTCMDS + ALL_EXPORTCMDS
 ALL_KEYWORDS = [COMMENT, PARAMETERS, PHASE, RUN] + ALL_POSTCMDS
 
 # @parameters
@@ -50,6 +56,7 @@ EVAL_EXACTN = "exact_n"
 EVAL_CUMULATIVE = "cumulative"
 EVAL_STEPS = "steps"
 EVAL_PHASE = "phase"
+EVAL_FILENAME = "filename"
 
 # Property values for evaluation
 EVAL_AVERAGE = "average"

@@ -26,7 +26,7 @@ class TestPhaseWorld(unittest.TestCase):
         script = """
         @parameters
         {
-            'mechanism': 'Enquist',
+            'mechanism': 'GA',
             'behaviors': ['R0', 'R1', 'R2'],
             'stimulus_elements': ['E0', 'E1', 'E2'],
             'response_requirements': {
