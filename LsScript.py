@@ -172,7 +172,7 @@ class ExportCmd():
                 for i, subject_ydata in enumerate(ydata):
                     subject_legend_label = "{0}, subject {1}".format(legend_label, i)
                     subject_legend_labels.append(subject_legend_label)
-                    
+
                 # Write headers
                 w.writerow(['x'] + subject_legend_labels)
 
@@ -538,9 +538,13 @@ def parse_postcmd(cmd, cmdarg, simulation_parameters):
         eval_prop = dict()
         if nargs >= 2:
             eval_prop = args[1]
+            if type(eval_prop) is not dict:
+                raise LsParseException("Properties to {} must be a dict.".format(cmd))
         plot_prop = dict()
         if nargs >= 3:
             plot_prop = args[2]
+            if type(plot_prop) is not dict:
+                raise LsParseException("Plot properties to {} must be a dict.".format(cmd))
         return PlotCmd(cmd, expr, eval_prop, plot_prop)
 
     else:  # cmd == VEXPORT or cmd == WEXPORT:

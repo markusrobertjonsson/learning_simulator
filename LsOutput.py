@@ -36,6 +36,8 @@ class ScriptOutput():
             evalprops[EVAL_RUNLABEL] = run_label
         else:
             run_label = evalprops[EVAL_RUNLABEL]
+            if run_label not in self.run_outputs:
+                raise LsEvalException("Unknown run label '{}'".format(run_label))
 
         n_subjects = len(self.run_outputs[run_label].output_subjects)
         if EVAL_SUBJECT not in evalprops:

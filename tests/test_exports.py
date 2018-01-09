@@ -118,3 +118,6 @@ class TestPlots(unittest.TestCase):
         script_obj.postproc(simulation_data, False)
 
         # self.subject_output = simulation_data.run_outputs["run1"].output_subjects[0]
+
+        def test_compare_plots(self):
+            pass # XXX todo

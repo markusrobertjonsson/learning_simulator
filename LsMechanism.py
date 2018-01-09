@@ -18,14 +18,17 @@ OMIT_LEARNING = 'omit_learning'
 
 DEFAULT = 'default'
 
-DEFAULTS = {START_V: {DEFAULT: 0},
-            U: {DEFAULT: 0},
-            C: {DEFAULT: 0},
-            ALPHA_V: 1,
-            ALPHA_W: 1,
-            BETA: 1,
-            RR: dict(),
-            OMIT_LEARNING: list()}
+
+def get_default(key):
+    DEFAULTS = {START_V: {DEFAULT: 0},
+                U: {DEFAULT: 0},
+                C: {DEFAULT: 0},
+                ALPHA_V: 1,
+                ALPHA_W: 1,
+                BETA: 1,
+                RR: dict(),
+                OMIT_LEARNING: list()}
+    return DEFAULTS[key]
 
 # -------------------------------------------------------------------------
 # ----------------------     Base class for mechanisms     ----------------
@@ -44,16 +47,16 @@ class Mechanism():
         self.stimulus_elements = kwargs[STIMULUS_ELEMENTS]
 
         # Optional
-        self.start_v = kwargs.get(START_V, DEFAULTS[START_V])
-        self.alpha_v = kwargs.get(ALPHA_V, DEFAULTS[ALPHA_V])
-        self.alpha_w = kwargs.get(ALPHA_W, DEFAULTS[ALPHA_W])
-        self.beta = kwargs.get(BETA, DEFAULTS[BETA])
-        self.omit_learning = kwargs.get(OMIT_LEARNING, DEFAULTS[OMIT_LEARNING])
-        self.response_req = kwargs.get(RR, DEFAULTS[RR])
+        self.start_v = kwargs.get(START_V, get_default(START_V))
+        self.alpha_v = kwargs.get(ALPHA_V, get_default(ALPHA_V))
+        self.alpha_w = kwargs.get(ALPHA_W, get_default(ALPHA_W))
+        self.beta = kwargs.get(BETA, get_default(BETA))
+        self.omit_learning = kwargs.get(OMIT_LEARNING, get_default(OMIT_LEARNING))
+        self.response_req = kwargs.get(RR, get_default(RR))
 
         # Needs to be copies since they are input and they are altered
-        self.u = dict(kwargs.get(U, DEFAULTS[U]))
-        self.c = dict(kwargs.get(C, DEFAULTS[C]))
+        self.u = dict(kwargs.get(U, get_default(U)))
+        self.c = dict(kwargs.get(C, get_default(C)))
 
         for key in self.start_v:
             if (key != DEFAULT):
@@ -95,6 +98,11 @@ class Mechanism():
             else:
                 raise LsParseException("Value for {0} in {1} must be a string or a list of strings.".format(key, RR))
 
+        # Make self.stimulus_req
+        self.response_req = dict(self.response_req)  # Copy since input and will be altered
+        for response in self.behaviors:
+            if response not in self.response_req:
+                self.response_req[response] = list(self.stimulus_elements)
         self.stimulus_req = LsUtil.dict_inv(self.response_req)
 
         self._initialize_uc()
@@ -194,7 +202,9 @@ def support_vector_static(stimulus, behaviors, stimulus_req, beta, v):
     for behavior in feasible_behaviors:
         value = 0
         for element in stimulus:
-            value += exp(beta * v[(element, behavior)])
+            # value += exp(beta * v[(element, behavior)])
+            value += beta * v[(element, behavior)]
+        value = exp(value)
         vector.append(value)
     return vector, feasible_behaviors
 

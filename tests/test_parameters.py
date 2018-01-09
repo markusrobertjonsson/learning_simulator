@@ -2,7 +2,7 @@ import unittest
 
 import LsScript
 import LsUtil
-from LsMechanism import RR
+from LsMechanism import RR, STIMULUS_ELEMENTS, BEHAVIORS
 from LsExceptions import LsParseException
 
 
@@ -27,8 +27,8 @@ class TestRequired(unittest.TestCase):
         """
         p = make_script_parameters(paramblock)
         self.assertEqual(p['mechanism'], 'GA')
-        self.assertEqual(p['behaviors'], ['R0'])
-        self.assertEqual(p['stimulus_elements'], ['E0'])
+        self.assertEqual(p[BEHAVIORS], ['R0'])
+        self.assertEqual(p[STIMULUS_ELEMENTS], ['E0'])
 
     def test_incomplete(self):
         paramblock = """
@@ -67,6 +67,17 @@ class TestResponseRequirements(unittest.TestCase):
         pass
 
     def test_syntax(self):
+        paramblock = """
+        @parameters
+        {
+            'mechanism': 'GA',
+            'behaviors': ['R0', 'R1', 'R2'],
+            'stimulus_elements': ['E00', 'E01', 'E10', 'E20', 'E21', 'E22']
+        }
+        """
+        p = make_script_parameters(paramblock)
+        self.assertTrue(RR not in p)
+
         paramblock = """
         @parameters
         {
@@ -245,6 +256,87 @@ class TestResponseRequirements(unittest.TestCase):
         _, cumsum_E22_R2 = LsUtil.find_and_cumsum(history, ['E22', 'R2'], True)
         self.assertEqual(cumsum_E22[-1], cumsum_E22_R2[-1])
 
+    def test_disjunct_with_default(self):
+        script = """
+        @parameters
+        {
+            'mechanism': 'GA',
+            'behaviors': ['R0', 'R1', 'R2', 'R3','R4'],
+            'stimulus_elements': ['E00', 'E01', 'E10', 'E20', 'E21', 'E22'],
+            'response_requirements': {
+                                      'R0': ['E00', 'E01'],
+                                      'R1': 'E10',
+                                      'R2': ['E20', 'E21', 'E22']
+                                      }
+        }
+
+        @phase {'label':'foo', 'end':'E00=100'}
+        PL00    'E00'  |  PL01
+        PL01    'E01'  |  PL10
+        PL10    'E10'  |  PL20
+        PL20    'E20'  |  PL21
+        PL21    'E21'  |  PL22
+        PL22    'E22'  |  PL00
+
+        @run
+        """
+        script_obj = LsScript.LsScript(script)
+        simulation_data = script_obj.run()
+        history = simulation_data.run_outputs["run1"].output_subjects[0].history
+        _, cumsum_E00 = LsUtil.find_and_cumsum(history, 'E00', True)
+        _, cumsum_E00_R0 = LsUtil.find_and_cumsum(history, ['E00', 'R0'], True)
+        _, cumsum_E00_R3 = LsUtil.find_and_cumsum(history, ['E00', 'R3'], True)
+        _, cumsum_E00_R4 = LsUtil.find_and_cumsum(history, ['E00', 'R4'], True)
+        self.assertEqual(cumsum_E00[-1], cumsum_E00_R0[-1] + cumsum_E00_R3[-1] + cumsum_E00_R4[-1])
+        self.assertGreater(cumsum_E00_R0[-1], 0)
+        self.assertGreater(cumsum_E00_R3[-1], 0)
+        self.assertGreater(cumsum_E00_R4[-1], 0)
+
+        _, cumsum_E01 = LsUtil.find_and_cumsum(history, 'E01', True)
+        _, cumsum_E01_R0 = LsUtil.find_and_cumsum(history, ['E01', 'R0'], True)
+        _, cumsum_E01_R3 = LsUtil.find_and_cumsum(history, ['E01', 'R3'], True)
+        _, cumsum_E01_R4 = LsUtil.find_and_cumsum(history, ['E01', 'R4'], True)
+        self.assertEqual(cumsum_E01[-1], cumsum_E01_R0[-1] + cumsum_E01_R3[-1] + cumsum_E01_R4[-1])
+        self.assertGreater(cumsum_E01_R0[-1], 0)
+        self.assertGreater(cumsum_E01_R3[-1], 0)
+        self.assertGreater(cumsum_E01_R4[-1], 0)
+
+        _, cumsum_E10 = LsUtil.find_and_cumsum(history, 'E10', True)
+        _, cumsum_E10_R1 = LsUtil.find_and_cumsum(history, ['E10', 'R1'], True)
+        _, cumsum_E10_R3 = LsUtil.find_and_cumsum(history, ['E10', 'R3'], True)
+        _, cumsum_E10_R4 = LsUtil.find_and_cumsum(history, ['E10', 'R4'], True)
+        self.assertEqual(cumsum_E10[-1], cumsum_E10_R1[-1] + cumsum_E10_R3[-1] + cumsum_E10_R4[-1])
+        self.assertGreater(cumsum_E10_R1[-1], 0)
+        self.assertGreater(cumsum_E10_R3[-1], 0)
+        self.assertGreater(cumsum_E10_R4[-1], 0)
+
+        _, cumsum_E20 = LsUtil.find_and_cumsum(history, 'E20', True)
+        _, cumsum_E20_R2 = LsUtil.find_and_cumsum(history, ['E20', 'R2'], True)
+        _, cumsum_E20_R3 = LsUtil.find_and_cumsum(history, ['E20', 'R3'], True)
+        _, cumsum_E20_R4 = LsUtil.find_and_cumsum(history, ['E20', 'R4'], True)
+        self.assertEqual(cumsum_E20[-1], cumsum_E20_R2[-1] + cumsum_E20_R3[-1] + cumsum_E20_R4[-1])
+        self.assertGreater(cumsum_E20_R2[-1], 0)
+        self.assertGreater(cumsum_E20_R3[-1], 0)
+        self.assertGreater(cumsum_E20_R4[-1], 0)
+
+        _, cumsum_E21 = LsUtil.find_and_cumsum(history, 'E21', True)
+        _, cumsum_E21_R2 = LsUtil.find_and_cumsum(history, ['E21', 'R2'], True)
+        _, cumsum_E21_R3 = LsUtil.find_and_cumsum(history, ['E21', 'R3'], True)
+        _, cumsum_E21_R4 = LsUtil.find_and_cumsum(history, ['E21', 'R4'], True)
+        self.assertEqual(cumsum_E21[-1], cumsum_E21_R2[-1] + cumsum_E21_R3[-1] + cumsum_E21_R4[-1])
+        self.assertGreater(cumsum_E21_R2[-1], 0)
+        self.assertGreater(cumsum_E21_R3[-1], 0)
+        self.assertGreater(cumsum_E21_R4[-1], 0)
+
+        _, cumsum_E22 = LsUtil.find_and_cumsum(history, 'E22', True)
+        _, cumsum_E22_R2 = LsUtil.find_and_cumsum(history, ['E22', 'R2'], True)
+        _, cumsum_E22_R3 = LsUtil.find_and_cumsum(history, ['E22', 'R3'], True)
+        _, cumsum_E22_R4 = LsUtil.find_and_cumsum(history, ['E22', 'R4'], True)
+        self.assertEqual(cumsum_E22[-1], cumsum_E22_R2[-1] + cumsum_E22_R3[-1] + cumsum_E22_R4[-1])
+        self.assertGreater(cumsum_E22_R2[-1], 0)
+        self.assertGreater(cumsum_E22_R3[-1], 0)
+        self.assertGreater(cumsum_E22_R4[-1], 0)
+
     def test_nondisjunct(self):
         script = """
         @parameters
@@ -303,3 +395,5 @@ class TestResponseRequirements(unittest.TestCase):
         _, cumsum_E0_R0 = LsUtil.find_and_cumsum(history, ['E0', 'R0'], True)
         _, cumsum_E0_R2 = LsUtil.find_and_cumsum(history, ['E0', 'R2'], True)
         self.assertEqual(cumsum_E0[-1], cumsum_E0_R0[-1] + cumsum_E0_R2[-1])
+        self.assertGreater(cumsum_E0_R0[-1], 0)
+        self.assertGreater(cumsum_E0_R2[-1], 0)
