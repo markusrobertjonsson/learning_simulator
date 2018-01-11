@@ -1,6 +1,2 @@
-markus@markus-laptop:~/Dropbox/_pyMarkus/LS$ python3 -m unittest tests/test_world.py
-................
-----------------------------------------------------------------------
-Ran 16 tests in 2.713s
+markus@markus-laptop:~/Dropbox/_pyMarkus/LS$ python3 -m unittest -v tests/test_*.py
 
-OK

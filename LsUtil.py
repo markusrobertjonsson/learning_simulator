@@ -111,6 +111,7 @@ def is_tuple_of_str(input):
     for i in input:
         if type(i) is not str:
             return False
+    return True
 
 
 def is_number(string):
@@ -260,10 +261,10 @@ def find_and_cumsum(seq, pattern, use_exact_match):
     findind = [0] * seq_len
     cumsum = [None] * seq_len
     cumsum_curr = 0
-    pattern_is_tuple = (pattern_type is tuple)
+    # pattern_is_tuple = (pattern_type is tuple)
     for i in range(seq_len - pattern_len + 1):
         seqpart = seq[i: (i + pattern_len)]
-        if _is_match(seqpart, pattern_list, use_exact_match, pattern_is_tuple):
+        if _is_match(seqpart, pattern_list, use_exact_match):  # , pattern_is_tuple):
             findind[i] = 1
             cumsum_curr += 1
         cumsum[i] = cumsum_curr
@@ -275,16 +276,17 @@ def find_and_cumsum(seq, pattern, use_exact_match):
     return findind, cumsum
 
 
-def _is_match(seq, pattern, use_exact_match, pattern_is_tuple):
+def _is_match(seq, pattern, use_exact_match):
     for i in range(len(seq)):
-        if not _is_match_local(seq[i], pattern[i], use_exact_match, pattern_is_tuple):
+        if not _is_match_local(seq[i], pattern[i], use_exact_match):
             return False
     return True
 
 
-def _is_match_local(st, pattern, use_exact_match, pattern_is_tuple):
+def _is_match_local(st, pattern, use_exact_match):
     st_type = type(st)
-    if pattern_is_tuple:
+    pattern_type = type(pattern)
+    if pattern_type is tuple:
         if st_type is tuple:
             if use_exact_match:
                 return set(st) == set(pattern)

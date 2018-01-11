@@ -93,8 +93,8 @@ class ScriptOutput():
                     raise LsEvalException("When '{0}' is a tuple, it must be a tuple of strings.".
                                           format(EVAL_STEPS))
             elif steps_type is list:
-                for s in steps_type:
-                    if (not LsUtil.is_tuple_of_str) and (type(s) is not str):
+                for s in steps:
+                    if (not LsUtil.is_tuple_of_str(s)) and (type(s) is not str):
                         raise LsEvalException(("When '{0}' is a list, each list item must be a " +
                                                "string or a tuple of strings.").format(EVAL_STEPS))
 

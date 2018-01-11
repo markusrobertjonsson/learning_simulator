@@ -47,17 +47,17 @@ class TestPlots(unittest.TestCase):
 
         @run {'phases':('chaining','test_B')}
 
-        @wexport 'S1' {'filename':'test_wexport1.csv'}
-        @wexport 'S2' {'filename':'test_wexport2.csv'}
+        @wexport 'S1' {'filename':'./tests/exported_files/test_wexport1.csv'}
+        @wexport 'S2' {'filename':'./tests/exported_files/test_wexport2.csv'}
 
-        @pexport (('S1','S2'), 'R1') {'filename':'test_pexport1.csv'}
-        @pexport ('S1', 'R0') {'filename':'test_pexport2.csv'}
+        @pexport (('S1','S2'), 'R1') {'filename':'./tests/exported_files/test_pexport1.csv'}
+        @pexport ('S1', 'R0') {'filename':'./tests/exported_files/test_pexport2.csv'}
 
-        @vexport ('S1', 'R1') {'filename':'test_vexport1.csv'}
-        @vexport ('S1', 'R0') {'filename':'test_vexport2.csv'}
+        @vexport ('S1', 'R1') {'filename':'./tests/exported_files/test_vexport1.csv'}
+        @vexport ('S1', 'R0') {'filename':'./tests/exported_files/test_vexport2.csv'}
 
-        @nexport 'reward' {'cumulative':'on', 'filename':'test_nexport1.csv'}
-        @nexport 'S1' {'cumulative':'on', 'filename':'test_nexport2.csv'}
+        @nexport 'reward' {'cumulative':'on', 'filename':'./tests/exported_files/test_nexport1.csv'}
+        @nexport 'S1' {'cumulative':'on', 'filename':'./tests/exported_files/test_nexport2.csv'}
         '''
         script_obj = LsScript.LsScript(script)
         simulation_data = script_obj.run()
@@ -101,17 +101,17 @@ class TestPlots(unittest.TestCase):
 
         @run {'phases':('chaining','test_B')}
 
-        @wexport 'S1' {'subject':'all', 'filename':'test_wexportMS1.csv'}
-        @wexport 'S2' {'filename':'test_wexportMS2.csv'}
+        @wexport 'S1' {'subject':'all', 'filename':'./tests/exported_files/test_wexportMS1.csv'}
+        @wexport 'S2' {'filename':'./tests/exported_files/test_wexportMS2.csv'}
 
-        @pexport (('S1','S2'), 'R1') {'filename':'test_pexportMS1.csv'}
-        @pexport ('S1', 'R0') {'filename':'test_pexportMS2.csv'}
+        @pexport (('S1','S2'), 'R1') {'filename':'./tests/exported_files/test_pexportMS1.csv'}
+        @pexport ('S1', 'R0') {'filename':'./tests/exported_files/test_pexportMS2.csv'}
 
-        @vexport ('S1', 'R1') {'filename':'test_vexportMS1.csv'}
-        @vexport ('S1', 'R0') {'filename':'test_vexportMS2.csv'}
+        @vexport ('S1', 'R1') {'filename':'./tests/exported_files/test_vexportMS1.csv'}
+        @vexport ('S1', 'R0') {'filename':'./tests/exported_files/test_vexportMS2.csv'}
 
-        @nexport 'reward' {'cumulative':'on', 'filename':'test_nexportMS1.csv'}
-        @nexport 'S1' {'cumulative':'on', 'filename':'test_nexportMS2.csv'}
+        @nexport 'reward' {'cumulative':'on', 'filename':'./tests/exported_files/test_nexportMS1.csv'}
+        @nexport 'S1' {'cumulative':'on', 'filename':'./tests/exported_files/test_nexportMS2.csv'}
         '''
         script_obj = LsScript.LsScript(script)
         simulation_data = script_obj.run()
