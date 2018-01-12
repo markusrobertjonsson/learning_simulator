@@ -48,59 +48,59 @@ class TestLsUtil(unittest.TestCase):
 
         # string
         findind, cumsum = LsUtil.find_and_cumsum(seq, 'a', True)
-        self.assertTrue(findind == [1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+        self.assertEqual(findind, [1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0])
         findind, cumsum = LsUtil.find_and_cumsum(seq, 'a', False)
-        self.assertTrue(findind == [1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 0])
+        self.assertEqual(findind, [1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 0])
 
         # tuple, length 1
         findind, cumsum = LsUtil.find_and_cumsum(seq, ('a',), True)
-        self.assertTrue(findind == [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0])
+        self.assertEqual(findind, [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0])
         findind, cumsum = LsUtil.find_and_cumsum(seq, ('a',), False)
-        self.assertTrue(findind == [0, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0])
+        self.assertEqual(findind, [0, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0])
 
         # tuple, length 2
         findind, cumsum = LsUtil.find_and_cumsum(seq, ('a', 'b'), True)
-        self.assertTrue(findind == [0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0])
+        self.assertEqual(findind, [0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0])
         findind, cumsum = LsUtil.find_and_cumsum(seq, ('a', 'b'), False)
-        self.assertTrue(findind == [0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0])
+        self.assertEqual(findind, [0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0])
 
         # tuple, length 3
         findind, cumsum = LsUtil.find_and_cumsum(seq, ('c', 'a', 'b'), True)
-        self.assertTrue(findind == [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+        self.assertEqual(findind, [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
         findind, cumsum = LsUtil.find_and_cumsum(seq, ('c', 'a', 'b'), False)
-        self.assertTrue(findind == [0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0])
+        self.assertEqual(findind, [0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0])
 
         # list, length 1
         findind, cumsum = LsUtil.find_and_cumsum(seq, ['a'], True)
-        self.assertTrue(findind == [1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+        self.assertEqual(findind, [1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0])
         findind, cumsum = LsUtil.find_and_cumsum(seq, ['a'], False)
-        self.assertTrue(findind == [1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 0])
+        self.assertEqual(findind, [1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 0])
         findind, cumsum = LsUtil.find_and_cumsum(seq, [('a',)], True)
-        self.assertTrue(findind == [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0])
+        self.assertEqual(findind, [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0])
         findind, cumsum = LsUtil.find_and_cumsum(seq, [('a',)], False)
-        self.assertTrue(findind == [0, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0])
+        self.assertEqual(findind, [0, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0])
         findind, cumsum = LsUtil.find_and_cumsum(seq, [('a', 'b')], True)
-        self.assertTrue(findind == [0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0])
+        self.assertEqual(findind, [0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0])
         findind, cumsum = LsUtil.find_and_cumsum(seq, [('a', 'b')], False)
-        self.assertTrue(findind == [0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0])
+        self.assertEqual(findind, [0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0])
         findind, cumsum = LsUtil.find_and_cumsum(seq, [('c', 'a', 'b')], True)
-        self.assertTrue(findind == [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+        self.assertEqual(findind, [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
         findind, cumsum = LsUtil.find_and_cumsum(seq, [('c', 'a', 'b')], False)
-        self.assertTrue(findind == [0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0])
+        self.assertEqual(findind, [0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0])
 
         # list, length 2
         findind, cumsum = LsUtil.find_and_cumsum(seq, ['a', 'b'], True)
-        self.assertTrue(findind == [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+        self.assertEqual(findind, [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
         findind, cumsum = LsUtil.find_and_cumsum(seq, ['a', 'b'], False)
         self.assertEqual(findind, [1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0])
 
         findind, cumsum = LsUtil.find_and_cumsum(seq, ['b', ('a', 'b')], True)
-        self.assertTrue(findind == [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0])
+        self.assertEqual(findind, [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0])
         findind, cumsum = LsUtil.find_and_cumsum(seq, ['b', ('a', 'b')], False)
         self.assertEqual(findind, [0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0])
 
         findind, cumsum = LsUtil.find_and_cumsum(seq, ['b', ('b', 'a')], True)
-        self.assertTrue(findind == [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0])
+        self.assertEqual(findind, [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0])
         findind, cumsum = LsUtil.find_and_cumsum(seq, ['b', ('b', 'a')], False)
         self.assertEqual(findind, [0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0])
 
