@@ -384,10 +384,8 @@ class TestPlots(unittest.TestCase):
         self.assertGreater(ymid / ymax, 0)
         self.assertGreater(ymid / ymax, 0.5)
 
-        try:
-            self.assertAlmostEqual(ymid / ymax, 0.9, 1)
-        except AssertionError:
-            self.assertAlmostEqual(ymid / ymax, 0.8, 1)
+        self.assertGreater(ymid / ymax, 0.6)
+        self.assertLess(ymid / ymax, 1)
 
         self.assertEqual(xmin, 0)
         self.assertEqual(ymin, 0)

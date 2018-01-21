@@ -24,7 +24,6 @@ class TestPlotProperties(unittest.TestCase):
             'behaviors'         : ['response','no_response'],
             'stimulus_elements' : ['new_trail', 'context', 'us', 'cs', 'reward'],
             'start_v'           : {'default':-1},
-            'start_w'           : {'default':0},
             'alpha_v'           : 0.1,
             'alpha_w'           : 0.1,
             'beta'              : 1.5,
