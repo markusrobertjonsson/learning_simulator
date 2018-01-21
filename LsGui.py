@@ -9,6 +9,7 @@ from tkinter import filedialog, messagebox
 import matplotlib.pyplot as plt
 
 import traceback
+import sys
 
 
 class Gui():
@@ -111,4 +112,6 @@ class Gui():
 
 
 if __name__ == "__main__":
+    args = sys.argv
+    
     guiObj = Gui()

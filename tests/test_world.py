@@ -1,6 +1,7 @@
 import unittest
 
 import LsScript
+import LsUtil
 from LsWorld import PhaseWorld
 from LsExceptions import LsParseException
 
@@ -21,7 +22,7 @@ class TestPhaseWorld(unittest.TestCase):
         self.variable_ratio = self.setup_variable_ratio()
         self.fixed_time = self.setup_fixed_time()
 
-    # XXX enable when wrong endcond raises FlParseException
+    # XXX enable when wrong endcond raises LsParseException
     def foo_test_wrong_endcond(self):
         script = """
         @parameters
@@ -55,6 +56,54 @@ class TestPhaseWorld(unittest.TestCase):
         stimulus_elements = ['context', 'reward', 'us']
         behaviors = ['R', 'foo']
         return make_phase(phase, pv, stimulus_elements, behaviors)
+
+    def test_repeat_phase(self):
+        script = """
+        @parameters
+        {
+            'mechanism': 'GA',
+            'behaviors': ['R0', 'R1', 'R2'],
+            'stimulus_elements': ['E0', 'E1', 'E2'],
+        }
+
+        @phase {'label':'foo', 'end':'E0=10'}
+        PL0    'E0'  |  PL1
+        PL1    'E1'  |  PL2
+        PL2    'E2'  |  PL0
+
+        @run {'phases': ('foo','foo')}
+        """
+        script_obj = LsScript.LsScript(script)
+        simulation_data = script_obj.run()
+        history = simulation_data.run_outputs["run1"].output_subjects[0].history
+        _, cumsum = LsUtil.find_and_cumsum(history, 'E0', True)
+        self.assertEqual(cumsum[-1], 20)
+
+
+        # script = """
+        # @parameters
+        # {
+        #     'mechanism': 'GA',
+        #     'behaviors': ['R0', 'R1', 'R2'],
+        #     'stimulus_elements': ['E0', 'E1', 'E2'],
+        # }
+
+        # @phase {'label':'foo1', 'end':'E0=10'}
+        # PL0    'E0'  |  PL1
+        # PL1    'E1'  |  PL2
+        # PL2    'E2'  |  PL0
+
+        # @phase {'label':'foo2', 'end':'E0=10'}
+        # PL0    'E0'  |  PL1
+        # PL1    'E1'  |  PL2
+        # PL2    'E2'  |  PL0
+
+        # @run {'phases': ('foo1','foo2')}
+        # """
+        # script_obj = LsScript.LsScript(script)
+        # simulation_data = script_obj.run()
+        # history = simulation_data.run_outputs["run1"].output_subjects[0].history
+        # print(history)
 
     def test_classical_conditioning_props(self):
         phase = self.classical_cond

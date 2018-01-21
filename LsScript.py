@@ -6,6 +6,7 @@ from LsSimulation import ScriptRun
 from LsExceptions import LsParseException
 from LsConstants import *
 
+import copy
 import ast
 import csv
 import matplotlib.pyplot as plt
@@ -307,7 +308,7 @@ class Parameters():
 
 class Phases():
     def __init__(self):
-        # A 2-tuple. Index 0 is phase labels, index 1 is corresponding Phase objects, index 2
+        # A 3-tuple. Index 0 is phase labels, index 1 is corresponding Phase objects, index 2
         # is PhaseWorld objects
         self.phases = (list(), list(), list())
 
@@ -333,7 +334,10 @@ class Phases():
             if lbl not in self.phases[0]:
                 raise Exception("Invalid phase label '{}'.".format(lbl))
             ind = self.phases[0].index(lbl)
-            phase_obj = self.phases[2][ind]
+
+            # Copy needed if phases_to_use is for example ('phase1','phase1')
+            phase_obj = copy.deepcopy(self.phases[2][ind])
+
             phase_worlds.append(phase_obj)
         return LsWorld.World(phase_worlds)
 
