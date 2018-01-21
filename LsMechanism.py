@@ -1,4 +1,5 @@
 from LsExceptions import LsParseException
+import LsConstants
 import LsUtil
 
 from math import exp
@@ -16,7 +17,23 @@ ALPHA_W = 'alpha_w'
 BETA = 'beta'
 OMIT_LEARNING = 'omit_learning'
 
+ALL_PARAMETER_NAMES = {LsConstants.SUBJECTS,
+                       LsConstants.MECHANISM,
+                       STIMULUS_ELEMENTS,
+                       BEHAVIORS,
+                       RR,
+                       U,
+                       C,
+                       START_V,
+                       ALPHA_V,
+                       ALPHA_W,
+                       BETA,
+                       OMIT_LEARNING}
+
 DEFAULT = 'default'
+
+DEFAULT_U_VALUE = 0
+DEFAULT_C_VALUE = 0
 
 
 def get_default(key):
@@ -39,6 +56,10 @@ class Mechanism():
     '''Base class for mechanisms'''
 
     def __init__(self, **kwargs):
+        for p in kwargs:
+            if p not in ALL_PARAMETER_NAMES:
+                raise LsParseException("Unknown parameter '{}'".format(p))
+
         # Required
         for required in [BEHAVIORS, STIMULUS_ELEMENTS]:
             if required not in kwargs:
@@ -54,9 +75,15 @@ class Mechanism():
         self.omit_learning = kwargs.get(OMIT_LEARNING, get_default(OMIT_LEARNING))
         self.response_req = kwargs.get(RR, get_default(RR))
 
-        # Needs to be copies since they are input and they are altered
+        # Needs to be copies since they are input and they are altered (in initialize_uc)
         self.u = dict(kwargs.get(U, get_default(U)))
         self.c = dict(kwargs.get(C, get_default(C)))
+
+        # Be nice - if DEFAULT not given, assume it is DEFAULT_{UC}_VALUE
+        if DEFAULT not in self.u:
+            self.u[DEFAULT] = DEFAULT_U_VALUE
+        if DEFAULT not in self.c:
+            self.c[DEFAULT] = DEFAULT_C_VALUE
 
         for key in self.start_v:
             if (key != DEFAULT):
@@ -74,13 +101,13 @@ class Mechanism():
         for key in self.u:
             if (key != DEFAULT) and (key not in self.stimulus_elements):
                 raise LsParseException("Unknown stimulus element '{0}' in '{1}'".format(key, U))
-        if (DEFAULT not in self.u) and (set(self.stimulus_elements) != self.u.keys()):
+        if (DEFAULT not in self.u) and (set(self.stimulus_elements) != set(self.u.keys())):
                 raise LsParseException("The parameter {0} must have the key '{1}' or be exhaustive.".format(U, DEFAULT))
 
         for key in self.c:
             if (key != DEFAULT) and (key not in self.behaviors):
                 raise LsParseException("Unknown behavior '{0}' in '{1}'".format(key, C))
-        if (DEFAULT not in self.c) and (set(self.behaviors) != self.c.keys()):
+        if (DEFAULT not in self.c) and (set(self.behaviors) != set(self.c.keys())):
             raise LsParseException("The parameter {0} must have the key '{1}' or be exhaustive.".format(C, DEFAULT))
 
         if type(self.response_req) is not dict:
