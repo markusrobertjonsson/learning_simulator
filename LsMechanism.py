@@ -229,7 +229,6 @@ def support_vector_static(stimulus, behaviors, stimulus_req, beta, v):
     for behavior in feasible_behaviors:
         value = 0
         for element in stimulus:
-            # value += exp(beta * v[(element, behavior)])
             value += beta * v[(element, behavior)]
         value = exp(value)
         vector.append(value)

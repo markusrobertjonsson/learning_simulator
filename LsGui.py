@@ -70,9 +70,6 @@ class Gui():
             script = self.scriptField.get("1.0", "end-1c")
             script_obj = LsScript.LsScript(script)
             self.simulation_data = script_obj.run()
-
-            # self.simulation_data.printout()
-
             script_obj.postproc(self.simulation_data)
         except Exception as ex:
             self.handle_exception(ex)
