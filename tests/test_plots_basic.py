@@ -104,7 +104,6 @@ class TestPlots(unittest.TestCase):
         ymax = wS2.get_ydata(True).max(0)
         self.assertEqual(xmin, 0)
         self.assertEqual(xmax, 99)
-        self.assertLessEqual(ymin, 0)
         self.assertAlmostEqual(ymax, 9, 2)
 
         # ydata = lines[0].get_ydata(True).tolist()
@@ -239,8 +238,8 @@ class TestPlots(unittest.TestCase):
         self.assertEqual(xfirst, 0)
         self.assertEqual(xlast, 99)
         self.assertAlmostEqual(ymin, 0.02, 1)
-        self.assertAlmostEqual(ymax, 0.333, 3)
-        self.assertAlmostEqual(yfirst, 0.333, 3)
+        self.assertAlmostEqual(ymax, 0.27, 2)
+        self.assertAlmostEqual(yfirst, 0.21, 2)
         self.assertAlmostEqual(ylast, 0.27, 2)
 
         # vS1R0
@@ -392,7 +391,7 @@ class TestPlots(unittest.TestCase):
         self.assertEqual(y0, 0)
         self.assertGreater(yend, 0.5)
         self.assertLess(yend, 0.99)
-        self.assertGreater(ymid, 0.5)
+        self.assertGreater(ymid, 0.4)
         self.assertLess(ymid, 0.99)
 
     def test_wplot_properties_not_dict(self):

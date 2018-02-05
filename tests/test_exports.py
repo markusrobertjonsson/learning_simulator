@@ -3,6 +3,8 @@
 import unittest
 import LsScript
 
+from tests.LsTestUtil import check_run_output_subject
+
 
 class TestPlots(unittest.TestCase):
 
@@ -13,7 +15,7 @@ class TestPlots(unittest.TestCase):
         pass
 
     def test_singlesubject(self):
-        script='''@parameters
+        script = '''@parameters
         {
         'subjects'          : 1,
         'mechanism'         : 'GA',
@@ -62,12 +64,10 @@ class TestPlots(unittest.TestCase):
         script_obj = LsScript.LsScript(script)
         simulation_data = script_obj.run()
         script_obj.postproc(simulation_data, False)
-
         # self.subject_output = simulation_data.run_outputs["run1"].output_subjects[0]
 
-
     def test_multisubject(self):
-        script='''@parameters
+        script = '''@parameters
         {
         'subjects'          : 10,
         'mechanism'         : 'GA',
@@ -117,7 +117,9 @@ class TestPlots(unittest.TestCase):
         simulation_data = script_obj.run()
         script_obj.postproc(simulation_data, False)
 
-        # self.subject_output = simulation_data.run_outputs["run1"].output_subjects[0]
+        for subject_ind in range(10):
+            out = simulation_data.run_outputs["run1"].output_subjects[subject_ind]
+            check_run_output_subject(self, out)
 
         def test_compare_plots(self):
-            pass # XXX todo
+            pass  # XXX

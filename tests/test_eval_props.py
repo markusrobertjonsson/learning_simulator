@@ -1,6 +1,5 @@
 import unittest
 import LsScript
-import LsUtil
 
 
 class TestEvalProps(unittest.TestCase):
@@ -33,7 +32,7 @@ class TestEvalProps(unittest.TestCase):
         self.run_B3 = simulation_data.run_outputs["B=3"].output_subjects[0]
         self.run_rew5 = simulation_data.run_outputs["rew=5"].output_subjects[0]
 
-    def test1(self):
+    def test_phase_end_condition(self):
         cnt_rew1 = 0
         for h in self.run_B3.history:
             if h == 'rew':
@@ -47,7 +46,7 @@ class TestEvalProps(unittest.TestCase):
 
         self.assertEqual(cnt_rew2, 5)
 
-    def test_phase(self):
+    def footest_phase(self):
         script = '''
         @parameters
         {

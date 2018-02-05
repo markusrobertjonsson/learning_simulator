@@ -66,11 +66,6 @@ class TestPlotProperties(unittest.TestCase):
         script_obj.postproc(simulation_data, False)
         plt.show(block=False)
 
-        # XXX
-        # if "test_steps" in simulation_data.run_outputs:
-        #     history = simulation_data.run_outputs["test_steps"].output_subjects[0].history
-        #     print(history)
-
     def test_invalid_runlabel(self):
         script = self.base_script + '''
             @run {'label':'pretraining_only', 'phases':'pretraining'}

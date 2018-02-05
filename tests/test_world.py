@@ -5,6 +5,8 @@ import LsUtil
 from LsWorld import PhaseWorld
 from LsExceptions import LsParseException
 
+from tests.LsTestUtil import check_run_output_subject
+
 
 def make_phase(phase, pv, stimulus_elements, behaviors):
     phase = [s.strip() for s in phase.splitlines()]
@@ -46,7 +48,7 @@ class TestPhaseWorld(unittest.TestCase):
         """
         with self.assertRaises(LsParseException):
             script_obj = LsScript.LsScript(script)
-            simulation_data = script_obj.run()
+            script_obj.run()
 
     def setup_classical_conditioning(self):
         phase = """CONTEXT context              | 25:US       | CONTEXT
@@ -79,31 +81,8 @@ class TestPhaseWorld(unittest.TestCase):
         _, cumsum = LsUtil.find_and_cumsum(history, 'E0', True)
         self.assertEqual(cumsum[-1], 20)
 
-
-        # script = """
-        # @parameters
-        # {
-        #     'mechanism': 'GA',
-        #     'behaviors': ['R0', 'R1', 'R2'],
-        #     'stimulus_elements': ['E0', 'E1', 'E2'],
-        # }
-
-        # @phase {'label':'foo1', 'end':'E0=10'}
-        # PL0    'E0'  |  PL1
-        # PL1    'E1'  |  PL2
-        # PL2    'E2'  |  PL0
-
-        # @phase {'label':'foo2', 'end':'E0=10'}
-        # PL0    'E0'  |  PL1
-        # PL1    'E1'  |  PL2
-        # PL2    'E2'  |  PL0
-
-        # @run {'phases': ('foo1','foo2')}
-        # """
-        # script_obj = LsScript.LsScript(script)
-        # simulation_data = script_obj.run()
-        # history = simulation_data.run_outputs["run1"].output_subjects[0].history
-        # print(history)
+        out = simulation_data.run_outputs["run1"].output_subjects[0]
+        check_run_output_subject(self, out)
 
     def test_classical_conditioning_props(self):
         phase = self.classical_cond

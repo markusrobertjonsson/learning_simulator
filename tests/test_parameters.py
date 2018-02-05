@@ -12,6 +12,62 @@ def make_script_parameters(paramblock):
     return script_obj.parameters.parameters
 
 
+class TestUnknownParametsr(unittest.TestCase):
+    def setUp(self):
+        pass
+
+    def test_unknown_parameter(self):
+        paramblock = """
+        @parameters
+        {
+            'subjects'          : 100, # number of individuals
+            'mechanism'         : 'GA',
+            'behaviors'         : ['left','right'],
+            'stimulus_elements' : ['new_trail','choice','goal_0','goal_1'],
+            'start_v'           : {'default':1},
+            'alpha_v'           : 0.1,
+            'alpha_w'           : 0.1,
+            'beta'              : 0.5,
+            'u'                 : {'goal_1':10,'default':1},
+            'cost'              : {'left':1},
+            'omit_learning'     : ['new_trail']
+        }
+        """
+        with self.assertRaises(LsParseException):
+            make_script_parameters(paramblock)
+
+
+class TestUCDefaults(unittest.TestCase):
+    def setUp(self):
+        pass
+
+    def test_uc_default_fillin(self):
+        script = """
+        @parameters
+        {
+            'mechanism'         : 'GA',
+            'behaviors'         : ['left','right'],
+            'stimulus_elements' : ['new_trail','choice','goal_0','goal_1'],
+            'start_v'           : {'default':1},
+            'u'                 : {'goal_1':7},
+            'behavior_cost'     : {'left':2},
+            'omit_learning'     : ['new_trail']
+        }
+
+        @phase {'label':'reward', 'end':'goal_0=50'}
+        NEW_TRIAL   'new_trail'      | T_MAZE
+        T_MAZE      'choice'         | left: LEFT_ARM | right: RIGHT_ARM
+        LEFT_ARM    'goal_0'         | NEW_TRIAL
+        RIGHT_ARM   'goal_1'         | NEW_TRIAL
+
+        @run
+        """
+        script_obj = LsScript.LsScript(script)
+        mechanism_obj = script_obj.runs.runs["run1"].mechanism_obj
+        self.assertEqual(mechanism_obj.c, {'left': 2, 'right': 0})
+        self.assertEqual(mechanism_obj.u, {'new_trail': 0, 'choice': 0, 'goal_0': 0, 'goal_1': 7})
+
+
 class TestRequired(unittest.TestCase):
     def setUp(self):
         pass

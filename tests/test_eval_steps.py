@@ -68,7 +68,6 @@ class TestEvalSteps(unittest.TestCase):
     def test3(self):
         histind, cumsum = LsUtil.find_and_cumsum(self.subject_output.history, ['S1', 'R2'], False)
         steps_S1R2 = self.subject_output.v[('S1', 'R2')].steps
-
         for ind, zero_or_one in enumerate(histind):
             if zero_or_one == 1:
                 self.assertEqual(ind % 2, 0)
