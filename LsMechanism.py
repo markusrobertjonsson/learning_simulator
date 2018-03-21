@@ -229,12 +229,6 @@ def get_feasible_behaviors(stimulus, behaviors, stimulus_req):
 
 def support_vector_static(stimulus, behaviors, stimulus_req, beta, v):
     feasible_behaviors = get_feasible_behaviors(stimulus, behaviors, stimulus_req)
-
-    # XXX
-    #print(stimulus)
-    if stimulus == ("E3",):
-        print("feasible behaviors for E3: {}".format(feasible_behaviors))
-
     vector = list()
     for behavior in feasible_behaviors:
         value = 0
