@@ -12,7 +12,7 @@ def make_script_parameters(paramblock):
     return script_obj.parameters.parameters
 
 
-class TestUnknownParametsr(unittest.TestCase):
+class TestUnknownParameter(unittest.TestCase):
     def setUp(self):
         pass
 
@@ -453,3 +453,21 @@ class TestResponseRequirements(unittest.TestCase):
         self.assertEqual(cumsum_E0[-1], cumsum_E0_R0[-1] + cumsum_E0_R2[-1])
         self.assertGreater(cumsum_E0_R0[-1], 0)
         self.assertGreater(cumsum_E0_R2[-1], 0)
+
+    def test_no_feasible_response(self):
+
+        paramblock = """
+        @parameters
+        {
+            'mechanism': 'GA',
+            'behaviors': ['R0', 'R1', 'R2'],
+            'stimulus_elements': ['E0', 'E1', 'E2','E3'],
+            'response_requirements': {
+                                      'R0': 'E0',
+                                      'R1': 'E1',
+                                      'R2': 'E2'
+                                      }
+        }
+        """
+        with self.assertRaises(LsParseException):
+            make_script_parameters(paramblock)

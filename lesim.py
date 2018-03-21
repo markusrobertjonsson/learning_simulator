@@ -28,7 +28,8 @@ if __name__ == "__main__":
     args = sys.argv
     nargs = len(args)
     assert(nargs >= 1)
-    assert(args[0].endswith("lesim.py"))
+    if not getattr(sys, 'frozen', False):
+        assert(args[0].endswith("lesim.py"))
     guiObj = None
     if nargs == 1:
         guiObj = LsGui.Gui()
@@ -39,7 +40,8 @@ if __name__ == "__main__":
         elif arg1 == RUN:
             files = args[2:len(args)]
             if len(files) == 0:
-                print("No script file given to lesim run. Type 'lesim.py help' for the available options.".format(arg1))
+                print(
+                    "No script file given to lesim run. Type 'lesim.py help' for the available options.".format(arg1))
             nfiles = len(files)
             for i, file in enumerate(files):
                 file_obj = open(file, "r")

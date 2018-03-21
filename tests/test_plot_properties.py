@@ -575,3 +575,20 @@ class TestPlotProperties(unittest.TestCase):
         with self.assertRaises(LsEvalException):
             script_obj.postproc(simulation_data, False)
         plt.show(block=False)
+
+    def test_wrong_arguments(self):
+        for vwnp in 'vwnp':
+            script = '''@parameters
+                {{
+                'mechanism'         : 'GA',
+                'behaviors'         : ['R'],
+                'stimulus_elements' : ['S']
+                }}
+
+                @phase {{'end':'S=100'}}
+                FOO    'S'   | FOO
+
+                @{}plot
+                '''.format(vwnp)
+            with self.assertRaises(LsParseException):
+                LsScript.LsScript(script)

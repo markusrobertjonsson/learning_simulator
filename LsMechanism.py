@@ -132,6 +132,11 @@ class Mechanism():
                 self.response_req[response] = list(self.stimulus_elements)
         self.stimulus_req = LsUtil.dict_inv(self.response_req)
 
+        # Check that all stimulus elements has at least one feasible response
+        if set(self.stimulus_req) != set(self.stimulus_elements):
+            elements_without_response = set(self.stimulus_elements) - set(self.stimulus_req)
+            raise LsParseException("Invalid response_requirements: Stimulus elements {} has no possible responses.".format(elements_without_response))
+
         self._initialize_uc()
         self.subject_reset()
 
@@ -211,12 +216,12 @@ def get_feasible_behaviors(stimulus, behaviors, stimulus_req):
 
     feasible_behaviors = set()
     for element in stimulus:
-        if element in stimulus_req:
-            for b in stimulus_req[element]:
-                feasible_behaviors.add(b)
-        else:
-            feasible_behaviors = behaviors
-            break
+        #if element in stimulus_req:
+        for b in stimulus_req[element]:
+            feasible_behaviors.add(b)
+        #else:
+        #    feasible_behaviors = behaviors
+        #    break
     feasible_behaviors = list(feasible_behaviors)
     # feasible_behaviors_cache[stimulus] = feasible_behaviors
     return feasible_behaviors
@@ -224,6 +229,11 @@ def get_feasible_behaviors(stimulus, behaviors, stimulus_req):
 
 def support_vector_static(stimulus, behaviors, stimulus_req, beta, v):
     feasible_behaviors = get_feasible_behaviors(stimulus, behaviors, stimulus_req)
+
+    # XXX
+    #print(stimulus)
+    if stimulus == ("E3",):
+        print("feasible behaviors for E3: {}".format(feasible_behaviors))
 
     vector = list()
     for behavior in feasible_behaviors:

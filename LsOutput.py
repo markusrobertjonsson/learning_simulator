@@ -154,7 +154,7 @@ class RunOutputSubject():
         # Keys are 2-tuples (stimulus_element,response), values are Val objects
         self.v = dict()
 
-        # Keys are stimulus-values (strings), values are Val objects
+        # Keys are stimulus elements (strings), values are Val objects
         self.w = dict()
 
         # History of stimulus and responses [S1,R1,S2,R2,...]

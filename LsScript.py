@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 
 
 class LsScript():
+
     def __init__(self, script):
         self.script = clean_script(script)
         self.comment = Comment()
@@ -37,7 +38,8 @@ class LsScript():
             if kw not in ALL_KEYWORDS:
                 raise LsParseException("Unknown keyword '{}'".format(kw))
             if kw in ALL_POSTCMDS:
-                postcmd, cmdarg = LsUtil.split1_strip(block)
+                # postcmd, cmdarg = LsUtil.split1_strip(block)
+                postcmd, cmdarg = LsUtil.split1_strip(first_row)
                 postcmd_obj = parse_postcmd(postcmd, cmdarg, self.parameters)
                 self.postcmds.add(postcmd_obj)
             else:
@@ -50,7 +52,8 @@ class LsScript():
                     if LABEL not in scriptblock.pvdict:
                         scriptblock.pvdict[LABEL] = self._next_unnamed_phase()
                     if END not in scriptblock.pvdict:
-                        raise LsParseException("The property 'end' is required in {}.".format(PHASE))
+                        raise LsParseException(
+                            "The property 'end' is required in {}.".format(PHASE))
                     self.phases.add(scriptblock, self.parameters)  # .clone()
                 elif kw == RUN:
                     # If 'phases' not specified, use empty tuple (which means all phases)
@@ -85,6 +88,7 @@ class LsScript():
 
 
 class PostCmds():
+
     def __init__(self):
         self.cmds = list()  # List of PlotCmd or ExportCmd objects
 
@@ -97,6 +101,7 @@ class PostCmds():
 
 
 class PlotCmd():
+
     def __init__(self, cmd, expr, eval_prop, plot_prop):
         self.cmd = cmd
         self.expr = expr
@@ -138,6 +143,7 @@ class PlotCmd():
 
 
 class ExportCmd():
+
     def __init__(self, cmd, expr, eval_prop):
         self.cmd = cmd
         self.expr = expr
@@ -159,8 +165,11 @@ class ExportCmd():
             legend_label = "n{}".format(label_expr)
 
         if EVAL_FILENAME not in self.eval_prop:
-            raise LsParseException("Property {0} to {1} is mandatory.".format(EVAL_FILENAME, self.cmd))
+            raise LsParseException(
+                "Property {0} to {1} is mandatory.".format(EVAL_FILENAME, self.cmd))
         filename = self.eval_prop[EVAL_FILENAME]
+        if not filename.endswith(".csv"):
+            filename = filename + ".csv"
         file = open(filename, 'w', newline='')
 
         n_ydata = len(ydata)
@@ -223,6 +232,7 @@ def beautify_expr_for_label(expr0):
 
 
 class FigureCmd():
+
     def __init__(self, title, mpl_prop):
         self.title = title
         self.mpl_prop = mpl_prop
@@ -234,6 +244,7 @@ class FigureCmd():
 
 
 class SubplotCmd():
+
     def __init__(self, spec, mpl_prop):
         self.spec = spec  # Subplot specification, e.g. 211 or (2,1,1)
         self.mpl_prop = mpl_prop
@@ -243,6 +254,7 @@ class SubplotCmd():
 
 
 class LegendCmd():
+
     def __init__(self, labels, mpl_prop):
         self.labels = labels
         self.mpl_prop = mpl_prop
@@ -255,6 +267,7 @@ class LegendCmd():
 
 
 class ScriptBlock():
+
     def __init__(self, keyword, pvdict, content):
         self.keyword = keyword
         self.pvdict = pvdict
@@ -262,6 +275,7 @@ class ScriptBlock():
 
 
 class Comment():
+
     def __init__(self):
         self.comment = ""
 
@@ -271,6 +285,7 @@ class Comment():
 
 
 class Parameters():
+
     def __init__(self):
         self.parameters = dict()
 
@@ -307,6 +322,7 @@ class Parameters():
 
 
 class Phases():
+
     def __init__(self):
         # A 3-tuple. Index 0 is phase labels, index 1 is corresponding Phase objects, index 2
         # is PhaseWorld objects
@@ -350,6 +366,7 @@ class Phase():
         self.rows = rows  # list()
 
     '''Adds the specified list of rows to self.rows.'''
+
     def add_rows(self, rows):
         self.rows.extend(rows)
 
@@ -360,6 +377,7 @@ class Phase():
 
 
 class Runs():
+
     def __init__(self):
         # A dict with ScriptRun objects. Keys are run labels.
         self.runs = dict()
@@ -473,12 +491,15 @@ def parse_postcmd(cmd, cmdarg, simulation_parameters):
             if type(labels) is str:
                 labels = (labels,)
             if type(labels) is not tuple:
-                raise LsParseException("Legend labels must be a tuple ('label1','label2',...) or a string.".format(cmd))
+                raise LsParseException(
+                    "Legend labels must be a tuple ('label1','label2',...) or a string.".format(cmd))
         if type(mpl_prop) is not dict:
             raise LsParseException("Second argument to {} must be a dictionary.".format(cmd))
         return LegendCmd(labels, mpl_prop)
 
     elif cmd == PPLOT or cmd == PEXPORT:
+        if nargs == 0:
+            raise LsParseException("No arguments given to {}".format(cmd))
         expr = args[0]
         if type(expr) is not tuple:
             raise LsParseException("First argument to {} must be a tuple.".format(cmd))
@@ -538,6 +559,8 @@ def parse_postcmd(cmd, cmdarg, simulation_parameters):
             return ExportCmd(cmd, (seq, seqref), eval_prop)
 
     elif cmd == VPLOT or cmd == WPLOT:
+        if nargs == 0:
+            raise LsParseException("No arguments given to {}".format(cmd))
         expr = args[0]
         eval_prop = dict()
         if nargs >= 2:
@@ -552,6 +575,8 @@ def parse_postcmd(cmd, cmdarg, simulation_parameters):
         return PlotCmd(cmd, expr, eval_prop, plot_prop)
 
     else:  # cmd == VEXPORT or cmd == WEXPORT:
+        if nargs == 0:
+            raise LsParseException("No arguments given to {}".format(cmd))
         expr = args[0]
         eval_prop = dict()
         if nargs >= 2:

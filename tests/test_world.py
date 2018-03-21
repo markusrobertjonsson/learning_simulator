@@ -582,6 +582,5 @@ class TestPhaseWorld(unittest.TestCase):
 
         self.assertAlmostEqual(nfails / ntries, 1 / 2, 1)
 
-
 # if __name__ == '__main__':
 #     unittest.main()

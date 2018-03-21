@@ -1,7 +1,9 @@
 # import matplotlib.pyplot as plt
 
+import os.path
 import unittest
 import LsScript
+from LsExceptions import LsParseException
 
 from tests.LsTestUtil import check_run_output_subject
 
@@ -12,9 +14,57 @@ class TestPlots(unittest.TestCase):
         pass
 
     def tearDown(self):
-        pass
+        filenames = ['test_wexport1.csv',
+                     'test_wexport2.csv',
+                     'test_vexport1.csv',
+                     'test_vexport2.csv',
+                     'test_pexport1.csv',
+                     'test_pexport2.csv',
+                     'test_nexport1.csv',
+                     'test_nexport2.csv']
+        self.remove_files(filenames)
+        self.check_that_files_are_removed(filenames)
+
+        filenames = ['test_wexportMS1.csv',
+                     'test_wexportMS2.csv',
+                     'test_vexportMS1.csv',
+                     'test_vexportMS2.csv',
+                     'test_pexportMS1.csv',
+                     'test_pexportMS2.csv',
+                     'test_nexportMS1.csv',
+                     'test_nexportMS2.csv']
+        self.remove_files(filenames)
+        self.check_that_files_are_removed(filenames)
+
+    @staticmethod
+    def remove_files(filenames):
+        for filename in filenames:
+            fullpath = "./tests/exported_files/{}".format(filename)
+            if os.path.isfile(fullpath):
+                os.remove(fullpath)
+
+    def check_that_files_are_removed(self, filenames):
+        for filename in filenames:
+            fullpath = "./tests/exported_files/{}".format(filename)
+            self.assertFalse(os.path.isfile(fullpath))
+
+    def check_that_files_exist(self, filenames):
+        for filename in filenames:
+            fullpath = "./tests/exported_files/{}".format(filename)
+            self.assertTrue(os.path.isfile(fullpath))
 
     def test_singlesubject(self):
+        filenames = ['test_wexport1.csv',
+                     'test_wexport2.csv',
+                     'test_vexport1.csv',
+                     'test_vexport2.csv',
+                     'test_pexport1.csv',
+                     'test_pexport2.csv',
+                     'test_nexport1.csv',
+                     'test_nexport2.csv']
+        self.remove_files(filenames)
+        self.check_that_files_are_removed(filenames)
+
         script = '''@parameters
         {
         'subjects'          : 1,
@@ -32,20 +82,20 @@ class TestPlots(unittest.TestCase):
 
         ## ------------- SEQUENCE LEARNING -------------
         @phase {'label':'chaining', 'end': 'reward=25'}
-        NEW_TRIAL   'new trial'     | STIMULUS_1    
-        STIMULUS_1  'S1'              | R1: STIMULUS_2     | NEW_TRIAL 
+        NEW_TRIAL   'new trial'     | STIMULUS_1
+        STIMULUS_1  'S1'              | R1: STIMULUS_2     | NEW_TRIAL
         STIMULUS_2  'S2'              | R2: REWARD         | NEW_TRIAL
-        REWARD     reward      | NEW_TRIAL  
+        REWARD     reward      | NEW_TRIAL
 
         @phase {'label':'test_A', 'end': 'S1=100'}
-        NEW_TRIAL    'new trial'       | STIMULUS_1 
+        NEW_TRIAL    'new trial'       | STIMULUS_1
         STIMULUS_1  'S1'           | REWARD
-        REWARD     'reward2'        | NEW_TRIAL 
+        REWARD     'reward2'        | NEW_TRIAL
 
         @phase {'label':'test_B', 'end': 'S1=100'}
-        NEW_TRIAL   'new trial'   | STIMULUS_1  
+        NEW_TRIAL   'new trial'   | STIMULUS_1
         STIMULUS_1  'S1'              | R1: STIMULUS_2     | NEW_TRIAL
-        STIMULUS_2  'S2'              | NEW_TRIAL   
+        STIMULUS_2  'S2'              | NEW_TRIAL
 
         @run {'phases':('chaining','test_B')}
 
@@ -58,15 +108,27 @@ class TestPlots(unittest.TestCase):
         @vexport ('S1', 'R1') {'filename':'./tests/exported_files/test_vexport1.csv'}
         @vexport ('S1', 'R0') {'filename':'./tests/exported_files/test_vexport2.csv'}
 
-        @nexport 'reward' {'cumulative':'on', 'filename':'./tests/exported_files/test_nexport1.csv'}
-        @nexport 'S1' {'cumulative':'on', 'filename':'./tests/exported_files/test_nexport2.csv'}
+        @nexport 'reward' {'cumulative':'on', 'filename':'./tests/exported_files/test_nexport1'}  # Test without csv-suffix
+        @nexport 'S1' {'cumulative':'on', 'filename':'./tests/exported_files/test_nexport2'}  # Test without csv-suffix
         '''
         script_obj = LsScript.LsScript(script)
         simulation_data = script_obj.run()
         script_obj.postproc(simulation_data, False)
-        # self.subject_output = simulation_data.run_outputs["run1"].output_subjects[0]
+
+        self.check_that_files_exist(filenames)
 
     def test_multisubject(self):
+        filenames = ['test_wexportMS1.csv',
+                     'test_wexportMS2.csv',
+                     'test_vexportMS1.csv',
+                     'test_vexportMS2.csv',
+                     'test_pexportMS1.csv',
+                     'test_pexportMS2.csv',
+                     'test_nexportMS1.csv',
+                     'test_nexportMS2.csv']
+        self.remove_files(filenames)
+        self.check_that_files_are_removed(filenames)
+
         script = '''@parameters
         {
         'subjects'          : 10,
@@ -84,24 +146,24 @@ class TestPlots(unittest.TestCase):
 
         ## ------------- SEQUENCE LEARNING -------------
         @phase {'label':'chaining', 'end': 'reward=25'}
-        NEW_TRIAL   'new trial'     | STIMULUS_1    
-        STIMULUS_1  'S1'              | R1: STIMULUS_2     | NEW_TRIAL 
+        NEW_TRIAL   'new trial'     | STIMULUS_1
+        STIMULUS_1  'S1'              | R1: STIMULUS_2     | NEW_TRIAL
         STIMULUS_2  'S2'              | R2: REWARD         | NEW_TRIAL
-        REWARD     reward      | NEW_TRIAL  
+        REWARD     reward      | NEW_TRIAL
 
         @phase {'label':'test_A', 'end': 'S1=100'}
-        NEW_TRIAL    'new trial'       | STIMULUS_1 
+        NEW_TRIAL    'new trial'       | STIMULUS_1
         STIMULUS_1  'S1'           | REWARD
-        REWARD     'reward2'        | NEW_TRIAL 
+        REWARD     'reward2'        | NEW_TRIAL
 
         @phase {'label':'test_B', 'end': 'S1=100'}
-        NEW_TRIAL   'new trial'   | STIMULUS_1  
+        NEW_TRIAL   'new trial'   | STIMULUS_1
         STIMULUS_1  'S1'              | R1: STIMULUS_2     | NEW_TRIAL
-        STIMULUS_2  'S2'              | NEW_TRIAL   
+        STIMULUS_2  'S2'              | NEW_TRIAL
 
         @run {'phases':('chaining','test_B')}
 
-        @wexport 'S1' {'subject':'all', 'filename':'./tests/exported_files/test_wexportMS1.csv'}
+        @wexport 'S1' {'subject':'all', 'filename':'./tests/exported_files/test_wexportMS1'}  # Test without csv-suffix
         @wexport 'S2' {'filename':'./tests/exported_files/test_wexportMS2.csv'}
 
         @pexport (('S1','S2'), 'R1') {'filename':'./tests/exported_files/test_pexportMS1.csv'}
@@ -110,7 +172,7 @@ class TestPlots(unittest.TestCase):
         @vexport ('S1', 'R1') {'filename':'./tests/exported_files/test_vexportMS1.csv'}
         @vexport ('S1', 'R0') {'filename':'./tests/exported_files/test_vexportMS2.csv'}
 
-        @nexport 'reward' {'cumulative':'on', 'filename':'./tests/exported_files/test_nexportMS1.csv'}
+        @nexport 'reward' {'cumulative':'on', 'filename':'./tests/exported_files/test_nexportMS1'}  # Test without csv-suffix
         @nexport 'S1' {'cumulative':'on', 'filename':'./tests/exported_files/test_nexportMS2.csv'}
         '''
         script_obj = LsScript.LsScript(script)
@@ -121,5 +183,24 @@ class TestPlots(unittest.TestCase):
             out = simulation_data.run_outputs["run1"].output_subjects[subject_ind]
             check_run_output_subject(self, out)
 
-        def test_compare_plots(self):
+        self.check_that_files_exist(filenames)
+
+    def test_wrong_arguments(self):
+        for vwnp in 'vwnp':
+            script = '''@parameters
+                {{
+                'mechanism'         : 'GA',
+                'behaviors'         : ['R'],
+                'stimulus_elements' : ['S']
+                }}
+
+                @phase {{'end':'S=100'}}
+                FOO    'S'   | FOO
+
+                @{}export
+                '''.format(vwnp)
+            with self.assertRaises(LsParseException):
+                LsScript.LsScript(script)
+
+        def test_compare_to_plots(self):
             pass  # XXX
