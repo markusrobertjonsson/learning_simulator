@@ -170,7 +170,13 @@ class Gui():
         save_changes = self.save_changes()
         if not save_changes:
             return
-        filepath = filedialog.askopenfilename(filetypes=FILETYPES)
+
+        # XXX
+        initialdir = '.'
+        if os.path.isdir('/home/markus/Dropbox/'):
+            initialdir = '/home/markus/Dropbox/LearningSimulator/Scripts'
+
+        filepath = filedialog.askopenfilename(filetypes=FILETYPES, initialdir=initialdir)
         if filepath is not None and len(filepath) != 0:
             with open(filepath, encoding="utf-8") as f:
                 file_contents = f.read()

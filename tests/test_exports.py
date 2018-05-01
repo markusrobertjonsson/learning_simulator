@@ -21,7 +21,9 @@ class TestPlots(unittest.TestCase):
                      'test_pexport1.csv',
                      'test_pexport2.csv',
                      'test_nexport1.csv',
-                     'test_nexport2.csv']
+                     'test_nexport2.csv',
+                     'test_hexport1.csv',
+                     'test_hexport2.csv']
         self.remove_files(filenames)
         self.check_that_files_are_removed(filenames)
 
@@ -32,7 +34,9 @@ class TestPlots(unittest.TestCase):
                      'test_pexportMS1.csv',
                      'test_pexportMS2.csv',
                      'test_nexportMS1.csv',
-                     'test_nexportMS2.csv']
+                     'test_nexportMS2.csv',
+                     'test_hexportMS1.csv',
+                     'test_hexportMS2.csv']
         self.remove_files(filenames)
         self.check_that_files_are_removed(filenames)
 
@@ -61,7 +65,9 @@ class TestPlots(unittest.TestCase):
                      'test_pexport1.csv',
                      'test_pexport2.csv',
                      'test_nexport1.csv',
-                     'test_nexport2.csv']
+                     'test_nexport2.csv',
+                     'test_hexport1.csv',
+                     'test_hexport2.csv']
         self.remove_files(filenames)
         self.check_that_files_are_removed(filenames)
 
@@ -97,19 +103,25 @@ class TestPlots(unittest.TestCase):
         STIMULUS_1  'S1'              | R1: STIMULUS_2     | NEW_TRIAL
         STIMULUS_2  'S2'              | NEW_TRIAL
 
-        @run {'phases':('chaining','test_B')}
+        @run {'phases':('chaining','test_A'), 'label':'A'}
+        @run {'phases':('chaining','test_B'), 'label':'B'}
 
-        @wexport 'S1' {'filename':'./tests/exported_files/test_wexport1.csv'}
-        @wexport 'S2' {'filename':'./tests/exported_files/test_wexport2.csv'}
+        @wexport 'S1' {'filename':'./tests/exported_files/test_wexport1.csv','runlabel':'A'}
+        @wexport 'S1' {'filename':'./tests/exported_files/test_wexport1.csv','runlabel':'B'}
+        @wexport 'S2' {'filename':'./tests/exported_files/test_wexport2.csv','runlabel':'A'}
+        @wexport 'S2' {'filename':'./tests/exported_files/test_wexport2.csv','runlabel':'B'}
 
-        @pexport (('S1','S2'), 'R1') {'filename':'./tests/exported_files/test_pexport1.csv'}
-        @pexport ('S1', 'R0') {'filename':'./tests/exported_files/test_pexport2.csv'}
+        @pexport (('S1','S2'), 'R1') {'filename':'./tests/exported_files/test_pexport1.csv', 'runlabel':'B'}
+        @pexport ('S1', 'R0') {'filename':'./tests/exported_files/test_pexport2.csv', 'runlabel':'B'}
 
-        @vexport ('S1', 'R1') {'filename':'./tests/exported_files/test_vexport1.csv'}
-        @vexport ('S1', 'R0') {'filename':'./tests/exported_files/test_vexport2.csv'}
+        @vexport ('S1', 'R1') {'filename':'./tests/exported_files/test_vexport1.csv', 'runlabel':'B'}
+        @vexport ('S1', 'R0') {'filename':'./tests/exported_files/test_vexport2.csv', 'runlabel':'B'}
 
-        @nexport 'reward' {'cumulative':'on', 'filename':'./tests/exported_files/test_nexport1'}  # Test without csv-suffix
-        @nexport 'S1' {'cumulative':'on', 'filename':'./tests/exported_files/test_nexport2'}  # Test without csv-suffix
+        @nexport 'reward' {'cumulative':'on', 'filename':'./tests/exported_files/test_nexport1', 'runlabel':'B'}  # Test without csv-suffix
+        @nexport 'S1' {'cumulative':'on', 'filename':'./tests/exported_files/test_nexport2', 'runlabel':'B'}  # Test without csv-suffix
+
+        @hexport {'filename': './tests/exported_files/test_hexport1', 'runlabel':'A'}
+        @hexport {'filename': './tests/exported_files/test_hexport2', 'runlabel':'B'}
         '''
         script_obj = LsScript.LsScript(script)
         simulation_data = script_obj.run()
@@ -174,6 +186,9 @@ class TestPlots(unittest.TestCase):
 
         @nexport 'reward' {'cumulative':'on', 'filename':'./tests/exported_files/test_nexportMS1'}  # Test without csv-suffix
         @nexport 'S1' {'cumulative':'on', 'filename':'./tests/exported_files/test_nexportMS2.csv'}
+
+        @hexport {'filename':'./tests/exported_files/test_hexportMS1.csv'}
+        @hexport {'filename':'./tests/exported_files/test_hexportMS2.csv'}
         '''
         script_obj = LsScript.LsScript(script)
         simulation_data = script_obj.run()

@@ -32,6 +32,7 @@ class TestEvalProps(unittest.TestCase):
         self.run_B3 = simulation_data.run_outputs["B=3"].output_subjects[0]
         self.run_rew5 = simulation_data.run_outputs["rew=5"].output_subjects[0]
 
+    # @unittest.skip("Reason skipped")  # FIXME
     def test_phase_end_condition(self):
         cnt_rew1 = 0
         for h in self.run_B3.history:

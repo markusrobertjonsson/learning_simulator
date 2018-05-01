@@ -25,7 +25,7 @@ class TestPhaseWorld(unittest.TestCase):
         self.fixed_time = self.setup_fixed_time()
 
     # XXX enable when wrong endcond raises LsParseException
-    def foo_test_wrong_endcond(self):
+    def test_wrong_endcond(self):
         script = """
         @parameters
         {
@@ -221,7 +221,7 @@ class TestPhaseWorld(unittest.TestCase):
                    REWARD  'reward'  | OFF"""
         pv = {'label': 'fixed_ratio', 'end': 'reward = 23'}
         stimulus_elements = ['lever', 'reward']
-        behaviors = ['R']
+        behaviors = ['R', 'R0']
         return make_phase(phase, pv, stimulus_elements, behaviors)
 
     def test_fixed_ratio_props(self):
@@ -302,7 +302,7 @@ class TestPhaseWorld(unittest.TestCase):
                    REWARD2  'reward2'  | LEVER"""
         pv = {'label': 'prob_schedule', 'end': 'reward=100000'}
         stimulus_elements = ['lever', 'reward1', 'reward2']
-        behaviors = ['R']
+        behaviors = ['R', 'reward']
         return make_phase(phase, pv, stimulus_elements, behaviors)
 
     def test_probability_schedule_props(self):
@@ -366,7 +366,7 @@ class TestPhaseWorld(unittest.TestCase):
                    REWARD  'reward'  | ON(1/3),FI2(1/3),FI3(1/3)"""
         pv = {'label': 'variable_interval1', 'end': 'reward = 200000'}
         stimulus_elements = ['lever3', 'lever2', 'leveron', 'reward']
-        behaviors = ['R', 'R1']
+        behaviors = ['R', 'R1', 'foo', 'bar', 'foobar']
         return make_phase(phase, pv, stimulus_elements, behaviors)
 
     def test_variable_interval_props(self):
@@ -464,7 +464,7 @@ class TestPhaseWorld(unittest.TestCase):
                    REWARD  'reward'  | ON(1/3),FR2(1/3),FR3(1/3)"""
         pv = {'label': 'variable_ratio1', 'end': 'reward = 250000'}
         stimulus_elements = ['lever', 'leveron', 'reward']
-        behaviors = ['R', 'R1']
+        behaviors = ['R', 'R1', 'bar']
         return make_phase(phase, pv, stimulus_elements, behaviors)
 
     def test_variable_ratio_props(self):
@@ -511,7 +511,7 @@ class TestPhaseWorld(unittest.TestCase):
                    REWARD  'reward'  | LEVER"""
         pv = {'label': 'fixed_time', 'end': 'reward = 2500'}
         stimulus_elements = ['lever', 'reward']
-        behaviors = []
+        behaviors = ['foofoo', 'foo', 'bar']
         return make_phase(phase, pv, stimulus_elements, behaviors)
 
     def test_fixed_time_props(self):
@@ -555,7 +555,7 @@ class TestPhaseWorld(unittest.TestCase):
                    REWARD  'reward'   | ON(1/6),FI2(1/6),FI3(1/6)"""
         pv = {'label': 'vi', 'end': 'reward = 25000'}
         stimulus_elements = ['lever1', 'lever2', 'lever3', 'reward']
-        behaviors = ['R']
+        behaviors = ['R', 'foo']
 #        with self.assertRaises(LsParseException):
         phase = make_phase(phase, pv, stimulus_elements, behaviors)
 

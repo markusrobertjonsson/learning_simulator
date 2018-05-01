@@ -25,7 +25,7 @@ def startswith(string, prefixes):
         return None
     elif isinstance(prefixes, str):
         prefix = prefixes
-        if str.startswith(prefix):
+        if string.startswith(prefix):
             return prefix
         return None
     else:

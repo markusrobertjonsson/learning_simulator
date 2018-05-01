@@ -73,6 +73,7 @@ class Mechanism():
         self.alpha_w = kwargs.get(ALPHA_W, get_default(ALPHA_W))
         self.beta = kwargs.get(BETA, get_default(BETA))
         self.omit_learning = kwargs.get(OMIT_LEARNING, get_default(OMIT_LEARNING))
+        self.set_omit_learning = set(self.omit_learning)
         self.response_req = kwargs.get(RR, get_default(RR))
 
         # Needs to be copies since they are input and they are altered (in initialize_uc)
@@ -148,7 +149,12 @@ class Mechanism():
 
     def learn_and_respond(self, stimulus):
         ''' stimulus is a tuple. '''
-        if self.prev_stimulus is not None and not (set(self.omit_learning) & set(stimulus)):
+        element_in_omit = False
+        for e in stimulus:
+            if e in self.omit_learning:
+                element_in_omit = True
+                break
+        if self.prev_stimulus is not None and not element_in_omit:  # (self.set_omit_learning & set(stimulus)):
             '''Do not update if first time or if any stimulus element is in omit'''
             self.learn(stimulus)
 
@@ -205,6 +211,7 @@ class Mechanism():
             self.w[element] = 0
 
 
+# This cache doesn't seem to speed things up.
 # feasible_behaviors_cache = dict()
 
 def get_feasible_behaviors(stimulus, behaviors, stimulus_req):
@@ -214,15 +221,11 @@ def get_feasible_behaviors(stimulus, behaviors, stimulus_req):
     # if stimulus in feasible_behaviors_cache:
     #     return feasible_behaviors_cache[stimulus]
 
-    feasible_behaviors = set()
+    feasible_behaviors = list()
     for element in stimulus:
-        #if element in stimulus_req:
         for b in stimulus_req[element]:
-            feasible_behaviors.add(b)
-        #else:
-        #    feasible_behaviors = behaviors
-        #    break
-    feasible_behaviors = list(feasible_behaviors)
+            if b not in feasible_behaviors:
+                feasible_behaviors.append(b)
     # feasible_behaviors_cache[stimulus] = feasible_behaviors
     return feasible_behaviors
 

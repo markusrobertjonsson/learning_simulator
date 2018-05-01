@@ -41,13 +41,15 @@ class PhaseWorld():
         self.endphase_obj = None
         self.phase_lines = dict()
         self.first_label = None
-        self._create(rows, stimulus_elements, behaviors)
+        self.linelabels = list()
+        self.stimulus_elements = stimulus_elements
+        self.behaviors = behaviors
+        self._create(rows)
 
         self.curr_lineobj = None
         self.subject_reset()
 
-    def _create(self, rows, stimulus_elements, behaviors):
-        linelabels = list()
+    def _create(self, rows):
         phase_lines_afterlabel = list()
 
         # First iteration through lines: Create list of lines (and labels)
@@ -56,25 +58,26 @@ class PhaseWorld():
             if afterlabel is None:
                 raise Exception('Error on line\n"{}"'.format(row))
             coincide_err = "The phase line label '{0}' coincides with the name of a "
-            if label in stimulus_elements:
+            if label in self.stimulus_elements:
                 raise LsParseException((coincide_err + "stimulus element.").format(label))
-            if label in behaviors:
+            if label in self.behaviors:
                 raise LsParseException((coincide_err + "behavior.").format(label))
-            linelabels.append(label)
+            self.linelabels.append(label)
             phase_lines_afterlabel.append(afterlabel)
             if self.first_label is None:
                 self.first_label = label
 
         # Second iteration: Create PhaseLine objects for all lines and put in the dict
         #                   self.phase_lines
-        for i in range(len(linelabels)):
-            label = linelabels[i]
+        for i in range(len(self.linelabels)):
+            label = self.linelabels[i]
             after_label = phase_lines_afterlabel[i]
-            self.phase_lines[label] = PhaseLine(label, after_label, linelabels,
-                                                stimulus_elements, behaviors)
+            self.phase_lines[label] = PhaseLine(label, after_label, self.linelabels,
+                                                self.stimulus_elements, self.behaviors)
 
     def subject_reset(self):
-        self.endphase_obj = EndPhaseCondition(self.endphase_str)
+        valid_items = self.stimulus_elements + self.behaviors + self.linelabels
+        self.endphase_obj = EndPhaseCondition(self.endphase_str, valid_items)
         self._make_current_line(self.first_label)
         self.prev_linelabel = None
         self.first_stimulus = True
@@ -95,7 +98,8 @@ class PhaseWorld():
         else:
             self.endphase_obj.update_itemfreq(rowlbl)
             self.endphase_obj.update_itemfreq(stimulus)
-            self.endphase_obj.update_itemfreq(response)
+            if response is not None:
+                self.endphase_obj.update_itemfreq(response)
         return stimulus
 
     def _make_current_line(self, label):
@@ -177,15 +181,15 @@ class PhaseLineCondition():
         self._parse(condition_str, stimulus_elements, behaviors, all_linelabels)
 
     def is_met(self, response, consec_linecnt, consec_respcnt):
-        ismet = False
-        if (self.response is None) and (self.count is None):
-            ismet = True
+        # ismet = False
+        if (self.response is not None) and (self.count is not None):
+            ismet = (response == self.response) and (consec_respcnt >= self.count)
         elif (self.response is None) and (self.count is not None):
             ismet = (consec_linecnt >= self.count)
         elif (self.response is not None) and (self.count is None):
             ismet = (response == self.response)
-        elif (self.response is not None) and (self.count is not None):
-            ismet = (response == self.response) and (consec_respcnt >= self.count)
+        else:  # (self.response is None) and (self.count is None):
+            ismet = True
 
         if ismet:
             label = self._goto_if_met()
@@ -276,27 +280,36 @@ class PhaseLineCondition():
 
 
 class EndPhaseCondition():
-    def __init__(self, endcond_str):
+    def __init__(self, endcond_str, valid_items):
         item, number_str = LsUtil.parse_equals(endcond_str)
+        if item not in valid_items:
+            raise LsParseException("Error on condition {0}. Invalid item {1}.".format(endcond_str,
+                                                                                      item))
         self.item = item
         isnumber, number = LsUtil.is_posint(number_str)
         if not isnumber:
-            raise Exception("Error on condition {0}. {1} is not an integer.".format(endcond_str,
-                            number))
+            raise LsParseException("Error on condition {0}. {1} is not an integer.".format(endcond_str, number))
         self.limit = number
-        self.itemfreq = dict()
+
+        self.itemfreq = 0
+        #self.itemfreq = dict()
+        #for item in valid_items:
+        #    self.itemfreq[item] = 0
 
     def update_itemfreq(self, item):
-        if type(item) is not tuple:
-            item = (item,)
-        for element in item:
-            if element in self.itemfreq:
-                self.itemfreq[element] += 1
-            else:
-                self.itemfreq[element] = 1
+        if type(item) is tuple:
+            for element in item:
+                if element == self.item:
+                    self.itemfreq += 1
+                #self.itemfreq[element] += 1
+        else:
+            if item == self.item:
+                self.itemfreq += 1
+            #self.itemfreq[item] += 1
 
     def is_met(self):
-        if self.item not in self.itemfreq:
-            return False
-        else:
-            return self.itemfreq[self.item] >= self.limit
+        #if self.item not in self.itemfreq:
+        #    return False
+        #else:
+        #return self.itemfreq[self.item] >= self.limit
+        return self.itemfreq >= self.limit

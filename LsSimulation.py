@@ -13,6 +13,7 @@ class ScriptRun():
         self.n_subjects = n_subjects
 
     def run(self):
+        # LsMechanism.feasible_behaviors_cache = dict()
         out = LsOutput.RunOutput(self.n_subjects, self.mechanism_obj.stimulus_req)
 
         # Initialize output with start values
@@ -48,9 +49,7 @@ class ScriptRun():
                         step += 1
                     last_stimulus = stimulus
                     last_response = response
-                    # step += 1
                 else:
-                    #step -= 1
                     # Write last step to all variables (except the ones that were written in
                     # the last step)
                     if self.has_w:
@@ -63,7 +62,6 @@ class ScriptRun():
                                 out.write_v(subject_ind, (element,), behavior, step,
                                             self.mechanism_obj)
                     out.write_history(subject_ind, last_stimulus, last_response)
-                    #out.write_history(subject_ind, stimulus, response)
                     out.write_step(subject_ind, "last", step)
 
                     # Reset mechanism and world for the next subject

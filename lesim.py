@@ -1,3 +1,5 @@
+# import cProfile
+
 import LsGui
 import LsScript
 

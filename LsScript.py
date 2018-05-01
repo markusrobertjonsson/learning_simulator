@@ -11,6 +11,21 @@ import ast
 import csv
 import matplotlib.pyplot as plt
 
+PLOT_PROPS = {'runlabel', 'subject', 'steps', 'exact_steps', 'phase'}
+EXPORT_ADD = {'filename'}
+N_ADD = {'cumulative', 'exact_n'}
+P_ADD = {'beta'}
+
+VALID_PROPS = {VPLOT: PLOT_PROPS,
+               WPLOT: PLOT_PROPS,
+               PPLOT: PLOT_PROPS | P_ADD,
+               NPLOT: PLOT_PROPS | N_ADD,
+               VEXPORT: PLOT_PROPS | EXPORT_ADD,
+               WEXPORT: PLOT_PROPS | EXPORT_ADD,
+               PEXPORT: PLOT_PROPS | EXPORT_ADD | P_ADD,
+               NEXPORT: PLOT_PROPS | EXPORT_ADD | N_ADD,
+               HEXPORT: {'filename', 'runlabel'}}
+
 
 class LsScript():
 
@@ -38,7 +53,6 @@ class LsScript():
             if kw not in ALL_KEYWORDS:
                 raise LsParseException("Unknown keyword '{}'".format(kw))
             if kw in ALL_POSTCMDS:
-                # postcmd, cmdarg = LsUtil.split1_strip(block)
                 postcmd, cmdarg = LsUtil.split1_strip(first_row)
                 postcmd_obj = parse_postcmd(postcmd, cmdarg, self.parameters)
                 self.postcmds.add(postcmd_obj)
@@ -109,12 +123,9 @@ class PlotCmd():
         self.plot_prop = plot_prop
         if 'linewidth' not in self.plot_prop:
             self.plot_prop['linewidth'] = 1
+        parse_eval_prop(cmd, expr, eval_prop, VALID_PROPS[cmd])
 
     def run(self, simulation_data):
-        if self.cmd in ALL_EXPORTCMDS:
-            self._export(simulation_data)
-            return
-
         label_expr = beautify_expr_for_label(self.expr)
         if self.cmd == VPLOT:
             ydata = simulation_data.vwpn_eval('v', self.expr, self.eval_prop)
@@ -148,8 +159,67 @@ class ExportCmd():
         self.cmd = cmd
         self.expr = expr
         self.eval_prop = eval_prop
+        parse_eval_prop(cmd, expr, eval_prop, VALID_PROPS[cmd])
 
     def run(self, simulation_data):
+        if EVAL_FILENAME not in self.eval_prop:
+            raise LsParseException(
+                "Property {0} to {1} is mandatory.".format(EVAL_FILENAME, self.cmd))
+        filename = self.eval_prop[EVAL_FILENAME]
+        if not filename.endswith(".csv"):
+            filename = filename + ".csv"
+        file = open(filename, 'w', newline='')
+
+        if self.cmd == HEXPORT:
+            self._h_export(file, simulation_data)
+        else:
+            self._vwpn_export(file, simulation_data)
+
+    def _h_export(self, file, simulation_data):
+        evalprops = simulation_data._evalparse(self.eval_prop)
+        with file as csvfile:
+            w = csv.writer(csvfile, quotechar='"', quoting=csv.QUOTE_NONNUMERIC, escapechar=None)
+
+            # if self.eval_prop[EVAL_SUBJECT] == EVAL_ALL:
+            run_label = evalprops[EVAL_RUNLABEL]
+            n_subjects = len(simulation_data.run_outputs[run_label].output_subjects)
+            subject_legend_labels = list()
+            for i in range(n_subjects):
+                subject_legend_labels.append("stimulus subject {}".format(i))
+                subject_legend_labels.append("response subject {}".format(i))
+
+            # Write headers
+            w.writerow(['step'] + subject_legend_labels)
+
+            # Write data
+            maxlen = 0
+
+            for i in range(n_subjects):
+                len_history_i = len(simulation_data.run_outputs[run_label].output_subjects[i].history)
+                if len_history_i > maxlen:
+                    maxlen = len_history_i
+            for histind in range(0, maxlen, 2):
+                datarow = [histind // 2]
+                for i in range(n_subjects):
+                    history = simulation_data.run_outputs[run_label].output_subjects[i].history
+                    if histind < len(history):
+                        stimulus = history[histind]
+                        response = history[histind + 1]
+                        datarow.append(stimulus)
+                        datarow.append(response)
+                    else:
+                        datarow.append(' ')
+                w.writerow(datarow)
+            # else:
+            #     # Write headers
+            #     w.writerow(['step', 'stimulus', 'response'])
+
+            #     # Write data
+            #     for row in range(len(ydata)):
+            #         datarow = [row, ydata[row]]
+            #         w.writerow(datarow)
+
+    def _vwpn_export(self, file, simulation_data):
         label_expr = beautify_expr_for_label(self.expr)
         if self.cmd == VEXPORT:
             ydata = simulation_data.vwpn_eval('v', self.expr, self.eval_prop)
@@ -164,14 +234,6 @@ class ExportCmd():
             ydata = simulation_data.vwpn_eval('n', self.expr, self.eval_prop)
             legend_label = "n{}".format(label_expr)
 
-        if EVAL_FILENAME not in self.eval_prop:
-            raise LsParseException(
-                "Property {0} to {1} is mandatory.".format(EVAL_FILENAME, self.cmd))
-        filename = self.eval_prop[EVAL_FILENAME]
-        if not filename.endswith(".csv"):
-            filename = filename + ".csv"
-        file = open(filename, 'w', newline='')
-
         n_ydata = len(ydata)
 
         with file as csvfile:
@@ -180,7 +242,7 @@ class ExportCmd():
             if self.eval_prop[EVAL_SUBJECT] == EVAL_ALL:
                 subject_legend_labels = list()
                 for i, subject_ydata in enumerate(ydata):
-                    subject_legend_label = "{0}, subject {1}".format(legend_label, i)
+                    subject_legend_label = "{0} subject {1}".format(legend_label, i)
                     subject_legend_labels.append(subject_legend_label)
 
                 # Write headers
@@ -562,6 +624,15 @@ def parse_postcmd(cmd, cmdarg, simulation_parameters):
         if nargs == 0:
             raise LsParseException("No arguments given to {}".format(cmd))
         expr = args[0]
+        if cmd == VPLOT:
+            if type(expr) is not tuple:
+                raise LsParseException("First argument to {} must be a tuple.".format(cmd))
+            for e in expr:
+                if type(e) is not str:
+                    raise LsParseException("First argument to {} must be a tuple of strings.".format(cmd))
+        else:  # WPLOT
+            if type(expr) is not str:
+                raise LsParseException("First argument to {} must be a string.".format(cmd))
         eval_prop = dict()
         if nargs >= 2:
             eval_prop = args[1]
@@ -574,10 +645,19 @@ def parse_postcmd(cmd, cmdarg, simulation_parameters):
                 raise LsParseException("Plot properties to {} must be a dict.".format(cmd))
         return PlotCmd(cmd, expr, eval_prop, plot_prop)
 
-    else:  # cmd == VEXPORT or cmd == WEXPORT:
+    elif cmd == VEXPORT or cmd == WEXPORT:
         if nargs == 0:
             raise LsParseException("No arguments given to {}".format(cmd))
         expr = args[0]
+        if cmd == VEXPORT:
+            if type(expr) is not tuple:
+                raise LsParseException("First argument to {} must be a tuple.".format(cmd))
+            for e in expr:
+                if type(e) is not str:
+                    raise LsParseException("First argument to {} must be a tuple of strings.".format(cmd))
+        else:  # WEXPORT
+            if type(expr) is not str:
+                raise LsParseException("First argument to {} must be a string.".format(cmd))
         eval_prop = dict()
         if nargs >= 2:
             eval_prop = args[1]
@@ -585,6 +665,24 @@ def parse_postcmd(cmd, cmdarg, simulation_parameters):
             raise LsParseException("The number of arguments to {} must be 1 or 2.".
                                    format(cmd))
         return ExportCmd(cmd, expr, eval_prop)
+
+    else:  # cmd == HEXPORT
+        if nargs == 0:
+            raise LsParseException("No arguments given to {}".format(cmd))
+        if nargs > 1:
+            raise LsParseException("The number of arguments to {} must be 1.".format(cmd))
+        eval_prop = args[0]
+        if type(eval_prop) is not dict:
+            raise LsParseException("Export properties to {} must be a dict.".format(cmd))
+        return ExportCmd(cmd, expr=None, eval_prop=eval_prop)
+
+
+def parse_eval_prop(cmd, expr, eval_prop, valid_prop):
+    # if type(expr) is not str:
+    #     raise LsParseException("First input to {} must be a string, got {}".format(cmd, expr))
+        for p in eval_prop:
+            if p not in valid_prop:
+                raise LsParseException("Invalid property '{}' to {}".format(p, cmd))
 
 
 def parse_subplotspec(spec, errmsg):
