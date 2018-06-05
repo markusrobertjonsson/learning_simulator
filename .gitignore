@@ -1,0 +1,13 @@
+*.py[cod]
+__pycache__
+
+logs/*
+*.sw?
+
+docs/_*
+docs/logs
+
+staticfiles
+htmlcov
+.coverage
+.env
