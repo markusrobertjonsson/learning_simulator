@@ -368,7 +368,7 @@ class Parameters():
         if MECHANISM not in self.parameters:
             raise LsParseException("The parameter {0} is required.".format(MECHANISM))
         mechanism_name = self.parameters[MECHANISM].lower()
-        if mechanism_name == RESCORLA_WAGNER:
+        if mechanism_name == RESCORLA_WAGNER or mechanism_name == "sr":  # XXX sr is alias
             mechanism_obj = LsMechanism.RescorlaWagner(**self.parameters)
         elif mechanism_name == Q_LEARNING:
             mechanism_obj = LsMechanism.Qlearning(**self.parameters)
