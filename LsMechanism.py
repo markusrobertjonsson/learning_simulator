@@ -96,8 +96,44 @@ class Mechanism():
                     raise LsParseException("Unknown stimulus element '{0}' in '{1}'".format(key[0], START_V))
                 if (key[1] not in self.behaviors):
                     raise LsParseException("Unknown behavior '{0}' in '{1}'".format(key[1], START_V))
+
+        self.alpha_v_all = dict()
+        alpha_v_type = type(self.alpha_v)
+        if alpha_v_type is dict:
+            for key in self.alpha_v:
+                if (key != DEFAULT):
+                    if type(key) is not tuple:
+                        raise LsParseException("Keys in {0} must be tuples or '{1}'.".format(ALPHA_V, DEFAULT))
+                    if len(key) != 2:
+                        raise LsParseException("Keys in {0} must be tuples of length two or {1}.".format(ALPHA_V, DEFAULT))
+                    if (key[0] not in self.stimulus_elements):
+                        raise LsParseException("Unknown stimulus element '{0}' in '{1}'".format(key[0], ALPHA_V))
+                    if (key[1] not in self.behaviors):
+                        raise LsParseException("Unknown behavior '{0}' in '{1}'".format(key[1], ALPHA_V))
+            if DEFAULT not in self.alpha_v:
+                raise LsParseException("The parameter {0} must have the key '{1}'.".format(ALPHA_V, DEFAULT))
+        elif (alpha_v_type is not int and alpha_v_type is not float) or alpha_v_type is bool:  # ?
+            raise LsParseException("Invalid value {0} for '{1}'".format(self.alpha_v, ALPHA_V))
+        self._initialize_alpha_v_all()
+
+        self.alpha_w_all = dict()
+        alpha_w_type = type(self.alpha_w)
+        if alpha_w_type is dict:
+            for key in self.alpha_w:
+                if (key != DEFAULT):
+                    if type(key) is not str:
+                        raise LsParseException("Keys in {0} must be stimulus elements or '{1}'.".format(ALPHA_W, DEFAULT))
+                    if key not in self.stimulus_elements:
+                        raise LsParseException("Keys in {0} must be stimulus elements or '{1}'.".format(ALPHA_W, DEFAULT))
+            if DEFAULT not in self.alpha_w:
+                raise LsParseException("The parameter {0} must have the key '{1}'.".format(ALPHA_W, DEFAULT))
+
+        elif (alpha_w_type is not int and alpha_w_type is not float) or alpha_w_type is bool:  # ?
+            raise LsParseException("Invalid value {0} for '{1}'".format(self.alpha_w, ALPHA_W))
+        self._initialize_alpha_w_all()
+
         if DEFAULT not in self.start_v:
-            raise LsParseException("The parameter {0} must have the key '{1}'.".format(U, DEFAULT))
+            raise LsParseException("The parameter {0} must have the key '{1}'.".format(START_V, DEFAULT))
 
         for key in self.u:
             if (key != DEFAULT) and (key not in self.stimulus_elements):
@@ -140,6 +176,26 @@ class Mechanism():
 
         self._initialize_uc()
         self.subject_reset()
+
+    def _initialize_alpha_v_all(self):
+        type_alpha_v = type(self.alpha_v)
+        self.alpha_v_all = dict()
+        for element in self.stimulus_elements:
+            for behavior in self.behaviors:
+                key = (element, behavior)
+                if type_alpha_v is dict:
+                    self.alpha_v_all[key] = self.alpha_v.get(key, self.alpha_v[DEFAULT])
+                else:  # Scalar (int or float)
+                    self.alpha_v_all[key] = self.alpha_v
+
+    def _initialize_alpha_w_all(self):
+        type_alpha_w = type(self.alpha_w)
+        self.alpha_w_all = dict()
+        for element in self.stimulus_elements:
+            if type_alpha_w is dict:
+                self.alpha_w_all[element] = self.alpha_w.get(element, self.alpha_w[DEFAULT])
+            else:  # Scalar (int or float)
+                self.alpha_w_all[element] = self.alpha_w
 
     def subject_reset(self):
         self._initialize_v()
@@ -370,10 +426,11 @@ class Enquist(Mechanism):
             usum += self.u[element]
             wsum += self.w[element]
         # v
-        delta = self.alpha_v * (usum + wsum - self.c[self.response] - vsum_prev)
         for element in self.prev_stimulus:
+            alpha_v = self.alpha_v_all[(element, self.response)]
+            delta = alpha_v * (usum + wsum - self.c[self.response] - vsum_prev)
             self.v[(element, self.response)] += delta
         # w
-        delta = self.alpha_w * (usum + wsum - self.c[self.response] - wsum_prev)
         for element in self.prev_stimulus:
+            delta = self.alpha_w_all[element] * (usum + wsum - self.c[self.response] - wsum_prev)
             self.w[element] += delta
