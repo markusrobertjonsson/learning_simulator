@@ -36,7 +36,8 @@ BETA = "beta"
 ENQUIST = 'ga'
 RESCORLA_WAGNER = 'rescorla_wagner'
 Q_LEARNING = 'q_learning'
-SARSA = 'sarsa'
+# SARSA = 'sarsa'
+EXP_SARSA = 'exp_sarsa'
 ACTOR_CRITIC = 'actor_critic'
 
 # @phases

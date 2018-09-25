@@ -372,8 +372,10 @@ class Parameters():
             mechanism_obj = LsMechanism.RescorlaWagner(**self.parameters)
         elif mechanism_name == Q_LEARNING:
             mechanism_obj = LsMechanism.Qlearning(**self.parameters)
-        elif mechanism_name == SARSA:
-            mechanism_obj = LsMechanism.SARSA(**self.parameters)
+        # elif mechanism_name == SARSA:
+        #     mechanism_obj = LsMechanism.SARSA(**self.parameters)
+        elif mechanism_name == EXP_SARSA:
+            mechanism_obj = LsMechanism.EXP_SARSA(**self.parameters)
         elif mechanism_name == ACTOR_CRITIC:
             mechanism_obj = LsMechanism.ActorCritic(**self.parameters)
         elif mechanism_name == ENQUIST:

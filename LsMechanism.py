@@ -329,40 +329,79 @@ class RescorlaWagner(Mechanism):
                 (usum - vsum - self.c[self.response])
 
 
+# class SARSA(Mechanism):
+#     def __init__(self, **kwargs):
+#         super().__init__(**kwargs)
+#
+#     def learn(self, stimulus):
+#         usum, vsum1, vsum2 = 0, 0, 0
+#         for element in stimulus:
+#             usum += self.u[element]
+#         for element in self.prev_stimulus:
+#             vsum1 += self.v[(element, self.response)]
+#         for element in self.stimulus:
+#             vsum2 += self.v[(element, self.response)]   # XXX ???
+#         for element in self.prev_stimulus:
+#             self.v[(element, self.response)] += self.alpha_v * \
+#                 (usum + vsum2 - vsum1 - self.c[self.response])
+
+
+class EXP_SARSA(Mechanism):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def learn(self, stimulus):
+        usum, vsum, vsum_prev = 0, 0, 0
+        for element in stimulus:
+            usum += self.u[element]
+            vsum += self.v[(element, self.response)]
+        for element in self.prev_stimulus:
+            vsum_prev += self.v[(element, self.response)]
+
+        E = 0
+        for element in stimulus:
+            x, feasible_behaviors = self._support_vector((element,))
+            sum_x = sum(x)
+
+            expected_value = 0
+            for index, b in enumerate(feasible_behaviors):
+                p = x[index] / sum_x
+                expected_value += p * self.v[(element, b)]
+            E += expected_value
+
+        for element in self.prev_stimulus:
+            alpha_v = self.alpha_v_all[(element, self.response)]
+            delta = alpha_v * (usum + E - self.c[self.response] - vsum_prev)
+            self.v[(element, self.response)] += delta
+
+
 class Qlearning(Mechanism):
-    # def __init__(self, behaviors, stimulus_elements, u, c, start_v, alpha_v, beta):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
     def learn(self, stimulus):
-        usum = 0, 0
+        usum, vsum, vsum_prev = 0, 0, 0
         for element in stimulus:
             usum += self.u[element]
-        maxv = 0
+            vsum += self.v[(element, self.response)]
         for element in self.prev_stimulus:
-            vval = self.v[(element, self.response)]
-            if vval > maxv:
-                maxv = vval
-        for element in self.prev_stimulus:
-            self.v[(element, self.response)] += self.alpha_v * \
-                (usum - maxv - self.c[self.response])
+            vsum_prev += self.v[(element, self.response)]
 
+        maxvsum_future = 0
+        for index, element in enumerate(stimulus):
+            feasible_behaviors = get_feasible_behaviors((element,), self.behaviors,
+                                                        self.stimulus_req)
+            vsum_future = 0
+            for b in feasible_behaviors:
+                vsum_future += self.v[(element, b)]
 
-class SARSA(Mechanism):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+            if (index == 0) or (vsum_future > maxvsum_future):
+                maxvsum_future = vsum_future
 
-    def learn(self, stimulus):
-        usum, vsum1, vsum2 = 0, 0, 0
-        for element in stimulus:
-            usum += self.u[element]
         for element in self.prev_stimulus:
-            vsum1 += self.v[(element, self.response)]
-        for element in self.stimulus:
-            vsum2 += self.v[(element, self.response)]   # XXX ???
-        for element in self.prev_stimulus:
-            self.v[(element, self.response)] += self.alpha_v * \
-                (usum + vsum2 - vsum1 - self.c[self.response])
+            alpha_v = self.alpha_v_all[(element, self.response)]
+            delta = alpha_v * (usum + maxvsum_future - self.c[self.response] - vsum_prev)
+            self.v[(element, self.response)] += delta
 
 
 '''class ActorCritic(Mechanism):
